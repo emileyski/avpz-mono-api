@@ -6,41 +6,67 @@ import {
   Patch,
   Param,
   Delete,
+  UseInterceptors,
+  UploadedFiles,
+  NotFoundException,
+  Put,
+  UseGuards,
 } from '@nestjs/common';
 import { PostsService } from './posts.service';
 import { CreatePostDto } from './dto/create-post.dto';
-import { UpdatePostDto } from './dto/update-post.dto';
-import { Roles } from 'src/core/enums/roles.enum';
-import { Role } from 'src/core/decorators/role.decorator';
 import { UserId } from 'src/core/decorators/user-id.decorator';
+import { FilesInterceptor } from '@nestjs/platform-express';
+import { imageFileFilter } from 'src/utils/file-upload.utils';
+import { Public } from 'src/core/decorators/public.decorator';
+import { ApiTags } from '@nestjs/swagger';
+import { AccessTokenGuard } from 'src/core/guards/access-token.guard';
 
+@ApiTags('posts')
 @Controller('posts')
 export class PostsController {
   constructor(private readonly postsService: PostsService) {}
 
   @Post()
-  @Role(Roles.USER)
-  create(@Body() createPostDto: CreatePostDto, @UserId() userId: string) {
-    return this.postsService.create(createPostDto, userId);
+  @UseGuards(AccessTokenGuard)
+  @UseInterceptors(
+    FilesInterceptor('image', 10, {
+      fileFilter: imageFileFilter,
+    }),
+  )
+  create(
+    @Body() createPostDto: CreatePostDto,
+    @UserId() userId: string,
+    @UploadedFiles() files,
+  ) {
+    if (!files) throw new NotFoundException('Image not found');
+    return this.postsService.create(createPostDto, userId, files);
   }
 
+  @Public()
   @Get()
   findAll() {
     return this.postsService.findAll();
   }
 
+  @Public()
   @Get(':id')
   findOne(@Param('id') id: string) {
-    return this.postsService.findOne(+id);
+    return this.postsService.findOne(id);
   }
 
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updatePostDto: UpdatePostDto) {
-    return this.postsService.update(+id, updatePostDto);
+  @UseGuards(AccessTokenGuard)
+  @Put(':id')
+  update(
+    @Body() updatePostDto: CreatePostDto,
+    @UserId() userId: string,
+    @Param('id') id: string,
+  ) {
+    return this.postsService.update(id, userId, updatePostDto);
   }
 
+  @UseGuards(AccessTokenGuard)
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.postsService.remove(+id);
+  remove(@Param('id') id: string, @UserId() userId: string) {
+    return this.postsService.remove(id, userId);
   }
 }

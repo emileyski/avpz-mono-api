@@ -1,4 +1,12 @@
-import { Body, Controller, HttpCode, Post, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  HttpCode,
+  Post,
+  UploadedFile,
+  UseGuards,
+  UseInterceptors,
+} from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { SignUpDto } from './dto/sign-up.dto';
 import { Tokens } from 'src/core/interfaces/tokens.interface';
@@ -11,12 +19,13 @@ import {
   ApiBadRequestResponse,
   ApiConflictResponse,
   ApiForbiddenResponse,
-  ApiHeader,
   ApiNotFoundResponse,
   ApiTags,
   ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
 import { AccessTokenGuard } from 'src/core/guards/access-token.guard';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { imageFileFilter } from 'src/utils/file-upload.utils';
 // import { Role } from 'src/core/decorators/role.decorator';
 // import { Roles } from 'src/core/enums/roles.enum';
 
@@ -32,8 +41,16 @@ export class AuthController {
   @ApiConflictResponse({ description: 'User already exists' })
   @Post('sign-up')
   @Public()
-  signUp(@Body() signUpDto: SignUpDto): Promise<Tokens> {
-    return this.authService.signUp(signUpDto);
+  @UseInterceptors(
+    FileInterceptor('picture', {
+      fileFilter: imageFileFilter,
+    }),
+  )
+  signUp(
+    @Body() signUpDto: SignUpDto,
+    @UploadedFile() picture,
+  ): Promise<Tokens> {
+    return this.authService.signUp(signUpDto, picture);
   }
 
   @ApiUnauthorizedResponse({ description: 'Invalid password' })
@@ -64,24 +81,4 @@ export class AuthController {
   ): Promise<Tokens> {
     return this.authService.refreshTokens(userId, refreshToken);
   }
-
-  @ApiUnauthorizedResponse({ description: 'Unauthorized' })
-  @ApiHeader({
-    name: 'Authorization',
-    description: 'Bearer token',
-    required: true,
-  })
-  @UseGuards(AccessTokenGuard)
-  @Post('access-token')
-  @HttpCode(200)
-  accessToken(@UserId() user): void {
-    console.log('userId', user);
-    return null;
-  }
-
-  // @Role(Roles.ADMIN)
-  // @Post('admin')
-  // admin(): string {
-  //   return 'Admin';
-  // }
 }

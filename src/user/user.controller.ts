@@ -14,6 +14,12 @@ export class UserController {
   @UseGuards(AccessTokenGuard)
   async getProfile(@User('id') userId: string) {
     const userData = await this.userService.findOne(userId);
+
+    if (userData.picture) {
+      //TODO: change to env variable
+      userData.picture = `http://localhost:3000/api/files/${userData.picture}`;
+    }
+
     delete userData.password;
     delete userData.token;
 

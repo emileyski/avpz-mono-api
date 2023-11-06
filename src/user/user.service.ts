@@ -39,6 +39,13 @@ export class UserService {
     }
   }
 
+  async setPicture(id: string, picture: string): Promise<User> {
+    const user = await this.findOne(id);
+    if (!user) throw new NotFoundException('User not found');
+    user.picture = picture;
+    return await this.usersRepository.save(user);
+  }
+
   async update(id: string, updateUserDto: UpdateUserDto): Promise<User> {
     const user = await this.findOne(id);
     if (updateUserDto.password) {
@@ -64,6 +71,7 @@ export class UserService {
     if (!user) {
       throw new NotFoundException('User not found');
     }
+
     return user;
   }
 

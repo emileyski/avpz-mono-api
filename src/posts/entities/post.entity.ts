@@ -25,4 +25,7 @@ export class Post {
 
   @ManyToOne(() => User, (user) => user.posts)
   user: User;
+
+  @Column({ type: 'jsonb', nullable: true, default: [] })
+  pictures: string[];
 }

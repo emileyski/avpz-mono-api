@@ -10,16 +10,24 @@ import { JwtPayload } from 'src/core/interfaces/jwt-payload.interface';
 import { hash, verify } from 'argon2';
 import { SignInDto } from './dto/sign-in.dto';
 import { UserService } from 'src/user/user.service';
+import { FilesService } from 'src/files/files.service';
 
 @Injectable()
 export class AuthService {
   constructor(
     private readonly jwtService: JwtService,
     private readonly usersService: UserService,
+    private readonly filesService: FilesService,
   ) {}
 
-  async signUp(signUpDto: SignUpDto): Promise<Tokens> {
+  async signUp(signUpDto: SignUpDto, picture): Promise<Tokens> {
     const { id, role } = await this.usersService.create(signUpDto);
+
+    if (picture) {
+      const { id: pictureId } = await this.filesService.saveOne(picture);
+      await this.usersService.setPicture(id, pictureId);
+    }
+
     const { accessToken, refreshToken } = await this.generateTokens({
       id,
       role,

@@ -5,11 +5,13 @@ import { JwtModule } from '@nestjs/jwt';
 import { UserModule } from 'src/user/user.module';
 import { RefreshTokenStrategy } from './strategies/refresh-token.strategy';
 import { AccessTokenStrategy } from './strategies/access-token.strategy';
+import { FilesModule } from 'src/files/files.module';
 
 @Module({
   imports: [
     JwtModule,
     forwardRef(() => UserModule),
+    FilesModule,
     // ClientsModule.register([
     //   {
     //     name: 'AUTH_SERVICE',
