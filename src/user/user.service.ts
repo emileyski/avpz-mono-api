@@ -33,7 +33,9 @@ export class UserService {
       });
       return await this.usersRepository.save(user);
     } catch (error) {
-      throw new ConflictException('User already exists');
+      throw new ConflictException(
+        'User with this email or nickname is already exists',
+      );
     }
   }
 

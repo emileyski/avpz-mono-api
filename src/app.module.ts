@@ -4,6 +4,7 @@ import { AccessTokenGuard } from './core/guards/access-token.guard';
 import { IsUUIDGuard } from './core/guards/is-uuid.guard';
 import { UserModule } from './user/user.module';
 import { AuthModule } from './auth/auth.module';
+import { PostsModule } from './posts/posts.module';
 
 @Module({
   imports: [
@@ -20,6 +21,7 @@ import { AuthModule } from './auth/auth.module';
     }),
     UserModule,
     AuthModule,
+    PostsModule,
   ],
   providers: [
     {

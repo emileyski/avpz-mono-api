@@ -1,3 +1,4 @@
+import { Genders } from 'src/core/enums/gender.enum';
 import { Roles } from 'src/core/enums/roles.enum';
 import { Column, Entity, Index, PrimaryGeneratedColumn } from 'typeorm';
 
@@ -24,6 +25,16 @@ export class User {
 
   @Column({ default: new Date() })
   createdAt: Date;
+
+  @Column({ nullable: true })
+  about?: string;
+
+  @Index('IDX_NICKNAME', { unique: true })
+  @Column()
+  nickname: string;
+
+  @Column()
+  gender: Genders;
 
   @Index('IDX_TOKEN')
   @Column({ nullable: true })
