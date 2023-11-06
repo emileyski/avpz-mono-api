@@ -8,6 +8,7 @@ import {
   OneToMany,
   PrimaryGeneratedColumn,
 } from 'typeorm';
+import { Comment } from 'src/comments/entities/comment.entity'; // Adjust the path accordingly
 
 @Entity('users')
 export class User {
@@ -52,4 +53,7 @@ export class User {
 
   @Column({ nullable: true })
   picture?: string;
+
+  @OneToMany(() => Comment, (comment) => comment.user)
+  comments: Comment[];
 }

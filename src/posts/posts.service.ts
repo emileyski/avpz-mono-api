@@ -1,6 +1,5 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { CreatePostDto } from './dto/create-post.dto';
-import { UpdatePostDto } from './dto/update-post.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Post } from './entities/post.entity';
@@ -74,11 +73,18 @@ export class PostsService {
         'post.body',
         'post.pictures',
         'post.createdAt',
+        'user.id',
         'user.name',
         'user.nickname',
-        'user.id',
+        'comment.id',
+        'comment.body',
+        'comment.createdAt',
+        'commentUser.id', // Добавляем id комментатора
+        'commentUser.name', // Добавляем имя комментатора
       ])
       .leftJoin('post.user', 'user')
+      .leftJoinAndSelect('post.comments', 'comment')
+      .leftJoin('comment.user', 'commentUser') // Добавляем юзера для комментария
       .where('post.id = :id', { id })
       .getOne();
 

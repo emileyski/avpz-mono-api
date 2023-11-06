@@ -7,6 +7,7 @@ import {
   OneToMany,
   PrimaryGeneratedColumn,
 } from 'typeorm';
+import { Comment } from 'src/comments/entities/comment.entity'; // Adjust the path accordingly
 
 @Entity()
 export class Post {
@@ -28,4 +29,7 @@ export class Post {
 
   @Column({ type: 'jsonb', nullable: true, default: [] })
   pictures: string[];
+
+  @OneToMany(() => Comment, (comment) => comment.post)
+  comments: Comment[];
 }
