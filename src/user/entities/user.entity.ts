@@ -1,6 +1,13 @@
 import { Genders } from 'src/core/enums/gender.enum';
 import { Roles } from 'src/core/enums/roles.enum';
-import { Column, Entity, Index, PrimaryGeneratedColumn } from 'typeorm';
+import { Post } from 'src/posts/entities/post.entity';
+import {
+  Column,
+  Entity,
+  Index,
+  OneToMany,
+  PrimaryGeneratedColumn,
+} from 'typeorm';
 
 @Entity('users')
 export class User {
@@ -39,4 +46,7 @@ export class User {
   @Index('IDX_TOKEN')
   @Column({ nullable: true })
   token?: string;
+
+  @OneToMany(() => Post, (post) => post.user)
+  posts: Post[];
 }
