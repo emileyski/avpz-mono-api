@@ -7,6 +7,7 @@ import { AuthModule } from './auth/auth.module';
 import { PostsModule } from './posts/posts.module';
 import { FilesModule } from './files/files.module';
 import { CommentsModule } from './comments/comments.module';
+import { ArticlesModule } from './articles/articles.module';
 
 @Module({
   imports: [
@@ -29,6 +30,7 @@ import { CommentsModule } from './comments/comments.module';
     // }),
     FilesModule,
     CommentsModule,
+    ArticlesModule,
   ],
   providers: [
     {
