@@ -44,8 +44,7 @@ export class PostsController {
 
   @Public()
   @Get()
-  findAll(@UserId() userId: string) {
-    console.log(userId);
+  findAll() {
     return this.postsService.findAll();
   }
 
