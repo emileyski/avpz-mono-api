@@ -8,6 +8,7 @@ import {
   PrimaryGeneratedColumn,
 } from 'typeorm';
 import { Comment } from 'src/comments/entities/comment.entity'; // Adjust the path accordingly
+import { PostLike } from 'src/post-likes/post-like.entity';
 
 @Entity()
 export class Post {
@@ -30,6 +31,11 @@ export class Post {
   @Column({ type: 'jsonb', nullable: true, default: [] })
   pictures: string[];
 
-  @OneToMany(() => Comment, (comment) => comment.post)
+  @OneToMany(() => Comment, (comment) => comment.post, { onDelete: 'CASCADE' })
   comments: Comment[];
+
+  @OneToMany(() => PostLike, (postLike) => postLike.post, {
+    onDelete: 'CASCADE',
+  })
+  likes: PostLike[];
 }

@@ -23,6 +23,13 @@ export class CreateUserDto {
   password: string;
 
   @ApiProperty({
+    description: 'The nickname of the user',
+    example: 'johndoe',
+  })
+  @IsString()
+  nickname: string;
+
+  @ApiProperty({
     description: 'The birth date of the user',
     example: '2000-01-01',
   })

@@ -1,4 +1,4 @@
-import { IsString } from 'class-validator';
+import { IsOptional, IsString } from 'class-validator';
 import { SignInDto } from './sign-in.dto';
 import { ApiProperty } from '@nestjs/swagger';
 import { Genders } from 'src/core/enums/gender.enum';
@@ -19,17 +19,23 @@ export class SignUpDto extends SignInDto {
     description: 'The nickname of the user',
     example: 'johndoe',
   })
+  @IsString()
   nickname: string;
 
   @ApiProperty({
     description: 'The bio of the user',
     example: 'I love programming!',
+    required: false,
   })
-  about: string;
+  @IsOptional()
+  @IsString()
+  about?: string;
 
   @ApiProperty({
     description: 'The user gender',
     example: 'MALE',
+    required: false,
   })
+  @IsOptional()
   gender: Genders;
 }

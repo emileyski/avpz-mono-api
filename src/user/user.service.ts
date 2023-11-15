@@ -17,11 +17,76 @@ export class UserService {
     @InjectRepository(User)
     private usersRepository: Repository<User>,
   ) {}
+  async getAll(name?: string, nickname?: string): Promise<any[]> {
+    const queryBuilder = this.usersRepository
+      .createQueryBuilder('user')
+      .select([
+        'user.id as id',
+        'user.name as name',
+        'user.nickname as nickname',
+        'user.email as email',
+        'user.role as role',
+        'user.picture as picture',
+        'COUNT(DISTINCT articles.id) as articlesCount',
+        'COUNT(DISTINCT posts.id) as postsCount',
+      ])
+      .leftJoin('user.articles', 'articles')
+      .leftJoin('user.posts', 'posts')
+      .groupBy('user.id'); // Group by user.id to avoid the error
 
-  async getAll(): Promise<User[]> {
-    return await this.usersRepository.find({
-      select: ['id', 'name', 'email', 'role', 'createdAt', 'birthDate'],
+    if (name) {
+      queryBuilder.andWhere('LOWER(user.name) ILIKE LOWER(:name)', {
+        name: `%${name.toLowerCase()}%`,
+      });
+    }
+
+    if (nickname) {
+      queryBuilder.andWhere('LOWER(user.nickname) ILIKE LOWER(:nickname)', {
+        nickname: `%${nickname.toLowerCase()}%`,
+      });
+    }
+
+    const users = await queryBuilder.getRawMany(); // Use getRawMany() to return raw results
+
+    users.forEach((user) => {
+      if (user.picture) {
+        const API_URL = process.env.API_URL || 'http://localhost:3000';
+        user.picture = `${API_URL}/api/files/${user.picture}`;
+      }
     });
+
+    return users;
+  }
+
+  async getRandomUsers(count?: number): Promise<any[]> {
+    const queryBuilder = this.usersRepository
+      .createQueryBuilder('user')
+      .select([
+        'user.id as id',
+        'user.name as name',
+        'user.nickname as nickname',
+        'user.email as email',
+        'user.role as role',
+        'user.picture as picture',
+        'COUNT(DISTINCT articles.id) as articlesCount',
+        'COUNT(DISTINCT posts.id) as postsCount',
+      ])
+      .leftJoin('user.articles', 'articles')
+      .leftJoin('user.posts', 'posts')
+      .groupBy('user.id') // Group by user.id to avoid the error
+      .orderBy('RANDOM()') // Order randomly
+      .limit(count || 10); // Limit to 10 users
+
+    const users = await queryBuilder.getRawMany(); // Use getRawMany() to return raw results
+
+    users.forEach((user) => {
+      if (user.picture) {
+        const API_URL = process.env.API_URL || 'http://localhost:3000';
+        user.picture = `${API_URL}/api/files/${user.picture}`;
+      }
+    });
+
+    return users;
   }
 
   async create(createUserDto: CreateUserDto): Promise<User> {
@@ -33,6 +98,7 @@ export class UserService {
       });
       return await this.usersRepository.save(user);
     } catch (error) {
+      console.log(error);
       throw new ConflictException(
         'User with this email or nickname is already exists',
       );

@@ -4,12 +4,17 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Post } from './entities/post.entity';
 import { FilesService } from 'src/files/files.service';
+import { PostLike } from 'src/post-likes/post-like.entity';
 
 @Injectable()
 export class PostsService {
+  API_URL: string = process.env.API_URL || 'http://localhost:3000';
+
   constructor(
     @InjectRepository(Post)
     private postsRepository: Repository<Post>,
+    @InjectRepository(PostLike)
+    private postLikesRepository: Repository<PostLike>,
     private readonly filesService: FilesService,
   ) {}
 
@@ -32,7 +37,7 @@ export class PostsService {
     return {
       ...post,
       pictures: filenames.map(
-        (file) => `http://localhost:3000/api/files/${file.id}`,
+        (file) => `${this.API_URL}/api/files/${file.filename}`,
       ),
     };
   }
@@ -49,15 +54,20 @@ export class PostsService {
         'user.name',
         'user.nickname',
         'user.id',
+        'comments.id',
+        'comments.body',
+        'comments.createdAt',
+        'commentUser.id',
+        'commentUser.name',
       ])
-      .leftJoin('post.user', 'user') // Join the user relation
+      .leftJoin('post.user', 'user')
+      .leftJoin('post.comments', 'comments')
+      .leftJoin('comments.user', 'commentUser') // Join the comments.user relation
       .getMany();
 
     posts.forEach((post) => {
-      console.log(post.pictures);
       post.pictures = post.pictures.map(
-        //TODO: Change this to a better way to get the url
-        (picture) => `http://localhost:3000/api/files/${picture}`,
+        (picture) => `${this.API_URL}/api/files/${picture}`,
       );
     });
 
@@ -79,8 +89,9 @@ export class PostsService {
         'comment.id',
         'comment.body',
         'comment.createdAt',
-        'commentUser.id', // Добавляем id комментатора
-        'commentUser.name', // Добавляем имя комментатора
+        'commentUser.id',
+        'commentUser.name',
+        'commentUser.nickname',
       ])
       .leftJoin('post.user', 'user')
       .leftJoinAndSelect('post.comments', 'comment')
@@ -91,7 +102,7 @@ export class PostsService {
     if (!post) throw new NotFoundException('Post not found');
 
     post.pictures = post.pictures.map(
-      (picture) => `http://localhost:3000/api/files/${picture}`,
+      (picture) => `${this.API_URL}/api/files/${picture}`,
     );
 
     return post;
@@ -127,5 +138,25 @@ export class PostsService {
     fileIds.map(async (id) => await this.filesService.deleteFileById(id));
 
     return { message: `Post with ID ${id} deleted successfully` };
+  }
+
+  async like(id: string, userId: string) {
+    const existedLike = await this.postLikesRepository.findOne({
+      where: { post: { id }, user: { id: userId } },
+    });
+
+    if (existedLike) {
+      await this.postLikesRepository.delete({ id: existedLike.id });
+      return { message: `Like to post ${id} removed successfully` };
+    }
+
+    const like = this.postLikesRepository.create({
+      post: { id },
+      user: { id: userId },
+    });
+
+    await this.postLikesRepository.save(like);
+
+    return { message: `Like to post ${id} added successfully` };
   }
 }

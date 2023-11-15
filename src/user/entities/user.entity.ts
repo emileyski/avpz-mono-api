@@ -9,6 +9,8 @@ import {
   PrimaryGeneratedColumn,
 } from 'typeorm';
 import { Comment } from 'src/comments/entities/comment.entity'; // Adjust the path accordingly
+import { Article } from 'src/articles/entities/article.entity';
+import { PostLike } from 'src/post-likes/post-like.entity';
 
 @Entity('users')
 export class User {
@@ -41,19 +43,27 @@ export class User {
   @Column()
   nickname: string;
 
-  @Column()
+  @Column({ default: Genders.OTHER })
   gender: Genders;
 
   @Index('IDX_TOKEN')
   @Column({ nullable: true })
   token?: string;
 
-  @OneToMany(() => Post, (post) => post.user)
+  @OneToMany(() => Post, (post) => post.user, { onDelete: 'CASCADE' })
   posts: Post[];
+
+  @OneToMany(() => Article, (article) => article.user)
+  articles: Article[];
 
   @Column({ nullable: true })
   picture?: string;
 
-  @OneToMany(() => Comment, (comment) => comment.user)
+  @OneToMany(() => Comment, (comment) => comment.user, { onDelete: 'CASCADE' })
   comments: Comment[];
+
+  @OneToMany(() => PostLike, (postLike) => postLike.user, {
+    onDelete: 'CASCADE',
+  })
+  postLikes: PostLike[];
 }

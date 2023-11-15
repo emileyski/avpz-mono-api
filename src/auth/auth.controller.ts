@@ -50,6 +50,7 @@ export class AuthController {
     @Body() signUpDto: SignUpDto,
     @UploadedFile() picture,
   ): Promise<Tokens> {
+    // console.log('signUpDto', signUpDto);
     return this.authService.signUp(signUpDto, picture);
   }
 

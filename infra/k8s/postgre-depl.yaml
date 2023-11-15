@@ -1,0 +1,44 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mono-api-postgres-depl
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mono-api-postgres
+  template:
+    metadata:
+      labels:
+        app: mono-api-postgres
+    spec:
+      containers:
+        - name: mono-api-postgres
+          image: postgres
+          env:
+            - name: POSTGRES_DB
+              value: db
+            - name: POSTGRES_USER
+              value: postgres
+            - name: POSTGRES_PASSWORD
+              value: postgres
+          # resources:
+          #   limits:
+          #     cpu: "1"
+          #     memory: "512Mi"
+          #   requests:
+          #     cpu: "100m"
+          #     memory: "256Mi"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mono-api-postgres-srv
+spec:
+  selector:
+    app: mono-api-postgres
+  ports:
+    - name: db
+      protocol: TCP
+      port: 5432
+      targetPort: 5432

@@ -93,7 +93,7 @@ export class AuthService {
 
   private async signToken(payload: JwtPayload, expiresIn: string) {
     return this.jwtService.signAsync(payload, {
-      secret: 'some_jwt_secret', //TODO: change to private key
+      secret: process.env.JWT_KEY || 'some_jwt_secret',
       //   audience: 'audience',
       //   issuer: 'issuer',
       expiresIn,

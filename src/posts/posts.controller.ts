@@ -44,7 +44,8 @@ export class PostsController {
 
   @Public()
   @Get()
-  findAll() {
+  findAll(@UserId() userId: string) {
+    console.log(userId);
     return this.postsService.findAll();
   }
 
@@ -68,5 +69,11 @@ export class PostsController {
   @Delete(':id')
   remove(@Param('id') id: string, @UserId() userId: string) {
     return this.postsService.remove(id, userId);
+  }
+
+  @UseGuards(AccessTokenGuard)
+  @Post(':id/like')
+  like(@Param('id') id: string, @UserId() userId: string) {
+    return this.postsService.like(id, userId);
   }
 }

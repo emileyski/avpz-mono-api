@@ -11,7 +11,7 @@ export class FilesService {
   ) {}
 
   async saveOne(file): Promise<{ filename: string; id: string }> {
-    console.log(file);
+    // console.log(file);
 
     const newFile = new File();
     newFile.filename = file.originalname;
