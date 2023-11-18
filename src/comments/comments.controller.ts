@@ -7,6 +7,7 @@ import {
   Param,
   Delete,
   UseGuards,
+  Put,
 } from '@nestjs/common';
 import { CommentsService } from './comments.service';
 import { CreateCommentDto } from './dto/create-comment.dto';
@@ -20,19 +21,30 @@ import { UserId } from 'src/core/decorators/user-id.decorator';
 export class CommentsController {
   constructor(private readonly commentsService: CommentsService) {}
 
+  // @UseGuards(AccessTokenGuard)
+  // @Post(':id/repply')
+  // repplyToComment(
+  //   @UserId() userId: string,
+  //   @Param('id') id: string,
+  //   @Body('comment') comment: string,
+  // ) {
+  //   return this.commentsService.repplyToComment(id, userId, comment);
+  // }
+
   @UseGuards(AccessTokenGuard)
-  @Post(':id')
-  create(
-    @Body() createCommentDto: CreateCommentDto,
-    @Param('id') id: string,
-    @UserId() userId: string,
-  ) {
-    return this.commentsService.create(createCommentDto, id, userId);
+  @Patch(':id/like')
+  like(@Param('id') id: string, @UserId() userId: string) {
+    return this.commentsService.like(id, userId);
   }
 
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateCommentDto: UpdateCommentDto) {
-    return this.commentsService.update(+id, updateCommentDto);
+  @UseGuards(AccessTokenGuard)
+  @Put(':id')
+  update(
+    @Param('id') id: string,
+    @Body('comment') comment: string,
+    @UserId() userId: string,
+  ) {
+    return this.commentsService.update(id, comment, userId);
   }
 
   @UseGuards(AccessTokenGuard)

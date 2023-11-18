@@ -5,6 +5,8 @@ import { Repository } from 'typeorm';
 import { Post } from './entities/post.entity';
 import { FilesService } from 'src/files/files.service';
 import { PostLike } from 'src/post-likes/post-like.entity';
+import { CommentsService } from 'src/comments/comments.service';
+import { CreateCommentDto } from 'src/comments/dto/create-comment.dto';
 
 @Injectable()
 export class PostsService {
@@ -16,6 +18,7 @@ export class PostsService {
     @InjectRepository(PostLike)
     private postLikesRepository: Repository<PostLike>,
     private readonly filesService: FilesService,
+    private readonly commentsService: CommentsService,
   ) {}
 
   async create(
@@ -42,7 +45,7 @@ export class PostsService {
     };
   }
 
-  async findAll() {
+  async findAll(userId?: string) {
     const posts = await this.postsRepository
       .createQueryBuilder('post')
       .select([
@@ -54,27 +57,34 @@ export class PostsService {
         'user.name',
         'user.nickname',
         'user.id',
-        'comments.id',
-        'comments.body',
-        'comments.createdAt',
-        'commentUser.id',
-        'commentUser.name',
       ])
+      .addSelect(['likes.id', 'likeUser.id'])
       .leftJoin('post.user', 'user')
-      .leftJoin('post.comments', 'comments')
-      .leftJoin('comments.user', 'commentUser') // Join the comments.user relation
+      .leftJoin('post.likes', 'likes')
+      .leftJoin('likes.user', 'likeUser')
+      .leftJoinAndSelect('post.comments', 'comments')
       .getMany();
 
+    // Добавляем поле isLiked в каждый пост
     posts.forEach((post) => {
       post.pictures = post.pictures.map(
         (picture) => `${this.API_URL}/api/files/${picture}`,
       );
+
+      // Проверяем, есть ли свойство likes и лайкнут ли текущий пользователь этот пост
+      post.isLiked = post.likes.some((like) => like.user.id === userId);
+      post.likeCount = post.likes ? post.likes.length : 0;
+
+      post.commentCount = post.comments ? post.comments.length : 0;
+
+      delete post.comments; // Удаляем свойство comments
+      delete post.likes; // Удаляем свойство likes
     });
 
     return posts;
   }
 
-  async findOne(id: string) {
+  async findOne(id: string, userId?: string) {
     const post = await this.postsRepository
       .createQueryBuilder('post')
       .select([
@@ -93,9 +103,21 @@ export class PostsService {
         'commentUser.name',
         'commentUser.nickname',
       ])
+      .addSelect(['likes.id', 'likeUser.id'])
+      .addSelect([
+        'replies.id',
+        'replies.body',
+        'replies.createdAt',
+        'replyUser.id',
+        'replyUser.name',
+      ]) // Include reply information
       .leftJoin('post.user', 'user')
-      .leftJoinAndSelect('post.comments', 'comment')
-      .leftJoin('comment.user', 'commentUser') // Добавляем юзера для комментария
+      .leftJoin('post.comments', 'comment')
+      .leftJoin('comment.user', 'commentUser') // Add user information for comments
+      .leftJoin('post.likes', 'likes')
+      .leftJoin('likes.user', 'likeUser')
+      .leftJoinAndSelect('comment.replies', 'replies') // Include replies for comments
+      .leftJoin('replies.user', 'replyUser') // Add user information for replies
       .where('post.id = :id', { id })
       .getOne();
 
@@ -104,6 +126,12 @@ export class PostsService {
     post.pictures = post.pictures.map(
       (picture) => `${this.API_URL}/api/files/${picture}`,
     );
+
+    // Добавляем поле isLiked в каждый пост
+    post.isLiked = post.likes.some((like) => like.user.id === userId);
+    post.likeCount = post.likes ? post.likes.length : 0;
+
+    delete post.likes; // Удаляем свойство likes
 
     return post;
   }
@@ -147,7 +175,10 @@ export class PostsService {
 
     if (existedLike) {
       await this.postLikesRepository.delete({ id: existedLike.id });
-      return { message: `Like to post ${id} removed successfully` };
+      return {
+        message: `Like to post ${id} removed successfully`,
+        liked: false,
+      };
     }
 
     const like = this.postLikesRepository.create({
@@ -157,6 +188,14 @@ export class PostsService {
 
     await this.postLikesRepository.save(like);
 
-    return { message: `Like to post ${id} added successfully` };
+    return { message: `Like to post ${id} added successfully`, liked: true };
+  }
+
+  async comment(id: string, userId: string, comment: string) {
+    return this.commentsService.create(comment, id, userId);
+  }
+
+  async getComments(id: string) {
+    return this.commentsService.getCommentsForPost(id);
   }
 }

@@ -11,6 +11,7 @@ import {
 import { Comment } from 'src/comments/entities/comment.entity'; // Adjust the path accordingly
 import { Article } from 'src/articles/entities/article.entity';
 import { PostLike } from 'src/post-likes/post-like.entity';
+import { CommentLike } from 'src/comments/entities/comment-like.entity';
 
 @Entity('users')
 export class User {
@@ -66,4 +67,9 @@ export class User {
     onDelete: 'CASCADE',
   })
   postLikes: PostLike[];
+
+  @OneToMany(() => CommentLike, (commentLike) => commentLike.user, {
+    onDelete: 'CASCADE',
+  })
+  commentLikes: CommentLike[];
 }

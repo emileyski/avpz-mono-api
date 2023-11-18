@@ -32,10 +32,10 @@ import { PostLikesModule } from './post-likes/post-likes.module';
     PostLikesModule,
   ],
   providers: [
-    {
-      provide: 'APP_GUARD',
-      useClass: AccessTokenGuard,
-    },
+    // {
+    //   provide: 'APP_GUARD',
+    //   useClass: AccessTokenGuard,
+    // },
     {
       provide: 'APP_GUARD',
       useClass: IsUUIDGuard,

@@ -38,4 +38,11 @@ export class Post {
     onDelete: 'CASCADE',
   })
   likes: PostLike[];
+
+  // Добавляем свойство isLiked
+  isLiked?: boolean;
+
+  likeCount?: number;
+
+  commentCount?: number;
 }

@@ -3,7 +3,6 @@ import {
   Get,
   Post,
   Body,
-  Patch,
   Param,
   Delete,
   UseInterceptors,
@@ -20,14 +19,15 @@ import { imageFileFilter } from 'src/utils/file-upload.utils';
 import { Public } from 'src/core/decorators/public.decorator';
 import { ApiTags } from '@nestjs/swagger';
 import { AccessTokenGuard } from 'src/core/guards/access-token.guard';
+import { OptionalAccessTokenGuard } from 'src/core/guards/optional-access-token.guard';
 
 @ApiTags('posts')
 @Controller('posts')
 export class PostsController {
   constructor(private readonly postsService: PostsService) {}
 
-  @Post()
   @UseGuards(AccessTokenGuard)
+  @Post()
   @UseInterceptors(
     FilesInterceptor('image', 10, {
       fileFilter: imageFileFilter,
@@ -42,16 +42,22 @@ export class PostsController {
     return this.postsService.create(createPostDto, userId, files);
   }
 
-  @Public()
+  @UseGuards(OptionalAccessTokenGuard)
   @Get()
-  findAll() {
-    return this.postsService.findAll();
+  findAll(@UserId() userId: string) {
+    return this.postsService.findAll(userId);
   }
 
   @Public()
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.postsService.findOne(id);
+  }
+
+  @Public()
+  @Get(':id/comments')
+  getComments(@Param('id') id: string) {
+    return this.postsService.getComments(id);
   }
 
   @UseGuards(AccessTokenGuard)
@@ -74,5 +80,15 @@ export class PostsController {
   @Post(':id/like')
   like(@Param('id') id: string, @UserId() userId: string) {
     return this.postsService.like(id, userId);
+  }
+
+  @UseGuards(AccessTokenGuard)
+  @Post(':id/comment')
+  comment(
+    @Param('id') id: string,
+    @UserId() userId: string,
+    @Body('comment') comment: string,
+  ) {
+    return this.postsService.comment(id, userId, comment);
   }
 }

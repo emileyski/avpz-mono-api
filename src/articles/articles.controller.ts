@@ -14,7 +14,9 @@ import { UpdateArticleDto } from './dto/update-article.dto';
 import { AccessTokenGuard } from 'src/core/guards/access-token.guard';
 import { UserId } from 'src/core/decorators/user-id.decorator';
 import { Public } from 'src/core/decorators/public.decorator';
+import { ApiTags } from '@nestjs/swagger';
 
+@ApiTags('articles')
 @Controller('articles')
 export class ArticlesController {
   constructor(private readonly articlesService: ArticlesService) {}
