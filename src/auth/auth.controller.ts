@@ -26,8 +26,6 @@ import {
 import { AccessTokenGuard } from 'src/core/guards/access-token.guard';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { imageFileFilter } from 'src/utils/file-upload.utils';
-// import { Role } from 'src/core/decorators/role.decorator';
-// import { Roles } from 'src/core/enums/roles.enum';
 
 @ApiTags('auth')
 @Controller('auth')

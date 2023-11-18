@@ -24,7 +24,7 @@ async function bootstrap() {
 
   const PORT = process.env.PORT || 3000;
 
-  app.enableCors({ origin: 'http://localhost:5173' });
+  app.enableCors({ origin: '*' });
 
   await app.listen(PORT);
   Logger.log(`😎 Skillhub API is running on port ${PORT}`, `bootstrap`);

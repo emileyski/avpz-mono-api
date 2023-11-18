@@ -121,7 +121,7 @@ export class UserService {
       this.usersRepository.merge(user, updateUserDto);
       return await this.usersRepository.save(user);
     } catch (error) {
-      throw new ConflictException('User already exists');
+      throw new ConflictException('Some error occured while updating user');
     }
   }
 
