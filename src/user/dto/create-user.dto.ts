@@ -36,8 +36,8 @@ export class CreateUserDto {
   @IsString()
   birthDate: Date;
 
-  @ApiProperty({ description: 'The role of the user', example: 'customer' })
-  @IsOptional()
-  @IsEnum(Roles)
-  role?: Roles;
+  // @ApiProperty({ description: 'The role of the user', example: 'customer' })
+  // @IsOptional()
+  // @IsEnum(Roles)
+  // role?: Roles;
 }
