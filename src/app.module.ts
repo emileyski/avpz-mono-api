@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { AccessTokenGuard } from './core/guards/access-token.guard';
+// import { AccessTokenGuard } from './core/guards/access-token.guard';
 import { IsUUIDGuard } from './core/guards/is-uuid.guard';
 import { UserModule } from './user/user.module';
 import { AuthModule } from './auth/auth.module';
@@ -9,9 +9,13 @@ import { FilesModule } from './files/files.module';
 import { CommentsModule } from './comments/comments.module';
 import { ArticlesModule } from './articles/articles.module';
 import { PostLikesModule } from './post-likes/post-likes.module';
+import { ConfigModule } from '@nestjs/config';
+import authConfig from './config/auth.config';
 
 @Module({
   imports: [
+    ConfigModule.forRoot({ isGlobal: true, load: [authConfig] }),
+
     TypeOrmModule.forRoot({
       type: 'postgres',
       host: process.env.DB_HOST || 'localhost',

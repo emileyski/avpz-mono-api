@@ -10,6 +10,7 @@ import { CreateUserDto } from './dto/create-user.dto';
 import { hash } from 'argon2';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { Roles } from 'src/core/enums/roles.enum';
+import { StrategyTypes } from 'src/core/enums/strategy.enum';
 
 @Injectable()
 export class UserService {
@@ -17,6 +18,23 @@ export class UserService {
     @InjectRepository(User)
     private usersRepository: Repository<User>,
   ) {}
+
+  async signupWithGoogle(user: any): Promise<User> {
+    const { name, email, nickname } = user;
+    const userExists = await this.usersRepository.findOneBy({ email });
+    if (userExists) {
+      throw new ConflictException('User with this email is already exists');
+    }
+
+    const newUser = this.usersRepository.create({
+      name,
+      email,
+      nickname,
+      strategy: StrategyTypes.GOOGLE,
+    });
+
+    return await this.usersRepository.save(newUser);
+  }
   async getAll(name?: string, nickname?: string): Promise<any[]> {
     const queryBuilder = this.usersRepository
       .createQueryBuilder('user')
@@ -114,14 +132,29 @@ export class UserService {
 
   async update(id: string, updateUserDto: UpdateUserDto): Promise<User> {
     const user = await this.findOne(id);
-    if (updateUserDto.password) {
-      updateUserDto.password = await hash(updateUserDto.password);
-    }
+
+    if (!user) throw new NotFoundException('User not found');
+
     try {
       this.usersRepository.merge(user, updateUserDto);
       return await this.usersRepository.save(user);
     } catch (error) {
       throw new ConflictException('Some error occured while updating user');
+    }
+  }
+
+  async updateRefreshToken(id: string, refreshToken: string): Promise<User> {
+    const user = await this.findOne(id);
+
+    if (!user) throw new NotFoundException('User not found');
+
+    try {
+      this.usersRepository.merge(user, { token: refreshToken });
+      return await this.usersRepository.save(user);
+    } catch (error) {
+      throw new ConflictException(
+        'Some error occured while updating user token',
+      );
     }
   }
 

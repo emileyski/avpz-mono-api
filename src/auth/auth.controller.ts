@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Get,
   HttpCode,
   Post,
   UploadedFile,
@@ -26,11 +27,24 @@ import {
 import { AccessTokenGuard } from 'src/core/guards/access-token.guard';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { imageFileFilter } from 'src/utils/file-upload.utils';
+import { GoogleOAuthGuard } from 'src/core/guards/google-oauth.guard';
 
 @ApiTags('auth')
 @Controller('auth')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
+
+  @Public()
+  @Get('google')
+  @UseGuards(GoogleOAuthGuard)
+  async googleAuth() {}
+
+  @Public()
+  @Get('google/callback')
+  @UseGuards(GoogleOAuthGuard)
+  googleAuthRedirect(@User() user: any) {
+    return this.authService.googleLogin(user);
+  }
 
   @ApiBadRequestResponse({
     description:

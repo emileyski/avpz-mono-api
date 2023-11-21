@@ -12,6 +12,7 @@ import { Comment } from 'src/comments/entities/comment.entity'; // Adjust the pa
 import { Article } from 'src/articles/entities/article.entity';
 import { PostLike } from 'src/post-likes/post-like.entity';
 import { CommentLike } from 'src/comments/entities/comment-like.entity';
+import { StrategyTypes } from 'src/core/enums/strategy.enum';
 
 @Entity('users')
 export class User {
@@ -25,14 +26,14 @@ export class User {
   @Column()
   name: string;
 
-  @Column()
-  password: string;
+  @Column({ nullable: true })
+  password?: string;
 
   @Column({ default: Roles.USER })
   role: Roles;
 
-  @Column()
-  birthDate: Date;
+  @Column({ nullable: true })
+  birthDate?: Date;
 
   @Column({ default: new Date() })
   createdAt: Date;
@@ -72,4 +73,7 @@ export class User {
     onDelete: 'CASCADE',
   })
   commentLikes: CommentLike[];
+
+  @Column({ default: StrategyTypes.LOCAL })
+  strategy: StrategyTypes;
 }

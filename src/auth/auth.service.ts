@@ -20,6 +20,21 @@ export class AuthService {
     private readonly filesService: FilesService,
   ) {}
 
+  async googleLogin(user: any): Promise<Tokens> {
+    if (!user) {
+      throw new UnauthorizedException('Invalid credentials');
+    }
+
+    const { id, role } = await this.usersService.signupWithGoogle(user);
+
+    const { accessToken, refreshToken } = await this.generateTokens({
+      id,
+      role,
+    });
+
+    return { accessToken, refreshToken };
+  }
+
   async signUp(signUpDto: SignUpDto, picture): Promise<Tokens> {
     const { id, role } = await this.usersService.create(signUpDto);
 
@@ -56,7 +71,7 @@ export class AuthService {
   }
 
   logOut(userId: string): void {
-    this.usersService.update(userId, { token: null });
+    this.usersService.updateRefreshToken(userId, null);
   }
 
   async refreshTokens(userId: string, token: string): Promise<Tokens> {
@@ -86,7 +101,7 @@ export class AuthService {
       this.signToken(payload, '7d'),
     ]);
     const hashedRefreshToken = await hash(refreshToken);
-    await this.usersService.update(payload.id, { token: hashedRefreshToken });
+    await this.usersService.updateRefreshToken(payload.id, hashedRefreshToken);
 
     return { accessToken, refreshToken };
   }
