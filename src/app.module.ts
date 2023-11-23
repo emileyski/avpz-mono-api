@@ -10,7 +10,9 @@ import { CommentsModule } from './comments/comments.module';
 import { ArticlesModule } from './articles/articles.module';
 import { PostLikesModule } from './post-likes/post-likes.module';
 import { ConfigModule } from '@nestjs/config';
+// import { ChatModule } from './chat-some/chat.module';
 import { ChatModule } from './chat/chat.module';
+import { MessageModule } from './message/message.module';
 import authConfig from './config/auth.config';
 
 @Module({
@@ -36,6 +38,7 @@ import authConfig from './config/auth.config';
     ArticlesModule,
     PostLikesModule,
     ChatModule,
+    MessageModule,
   ],
   providers: [
     // {

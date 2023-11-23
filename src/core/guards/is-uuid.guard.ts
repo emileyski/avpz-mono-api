@@ -1,4 +1,9 @@
-import { Injectable, CanActivate, ExecutionContext, BadRequestException } from '@nestjs/common';
+import {
+  Injectable,
+  CanActivate,
+  ExecutionContext,
+  BadRequestException,
+} from '@nestjs/common';
 import { isUUID } from 'class-validator';
 
 @Injectable()
@@ -7,7 +12,7 @@ export class IsUUIDGuard implements CanActivate {
     const request = context.switchToHttp().getRequest();
     const id = request.params.id;
 
-    if(!id) {
+    if (!id) {
       return true;
     }
 

@@ -13,6 +13,8 @@ import { Article } from 'src/articles/entities/article.entity';
 import { PostLike } from 'src/post-likes/post-like.entity';
 import { CommentLike } from 'src/comments/entities/comment-like.entity';
 import { StrategyTypes } from 'src/core/enums/strategy.enum';
+import { Chat } from 'src/chat/entities/chat.entity';
+import { ChatUser } from 'src/chat/entities/chat-user.entity';
 
 @Entity('users')
 export class User {
@@ -76,4 +78,10 @@ export class User {
 
   @Column({ default: StrategyTypes.LOCAL })
   strategy: StrategyTypes;
+
+  // @OneToMany(() => Chat, (chat) => chat.users)
+  // chats: Chat[];
+
+  @OneToMany(() => ChatUser, (chatUser) => chatUser.user)
+  chatUsers: ChatUser[];
 }
