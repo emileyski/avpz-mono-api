@@ -15,7 +15,6 @@ async function bootstrap() {
     .setTitle('Skillhub backend')
     .setDescription('Skillhub API')
     .setVersion('1.0')
-    .addTag('auth')
     .build();
 
   const document = SwaggerModule.createDocument(app, options);

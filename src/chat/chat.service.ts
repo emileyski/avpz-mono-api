@@ -5,6 +5,7 @@ import { Chat } from './entities/chat.entity';
 import { ChildEntity, Repository } from 'typeorm';
 import { ChatMember } from './entities/chat-member.entity';
 import { UserService } from 'src/user/user.service';
+import { User } from 'src/user/entities/user.entity';
 
 @Injectable()
 export class ChatService {
@@ -87,8 +88,55 @@ export class ChatService {
     return chatMembersWithUsers;
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} chat`;
+  //TODO: отрефакторить этот код
+  async findOne(id: string, userId: string) {
+    const chat = await this.chatsRepository.findOne({
+      where: { id },
+      relations: [
+        'chatMembers',
+        'chatMembers.user',
+        'messages',
+        'messages.user',
+      ],
+    });
+
+    if (
+      !chat ||
+      !chat.chatMembers.some((member) => member.user.id === userId)
+    ) {
+      throw new NotFoundException('Chat not found');
+    }
+
+    //TODO: отрефакторить этот код (возможно вынести в отдельный метод)
+    return {
+      ...chat,
+      chatMembers: chat.chatMembers.map((member) => {
+        const chatMember = {
+          ...member,
+          user: {
+            ...this.clearUserDate(member.user),
+            picture: member.user.picture
+              ? `${process.env.APPLICATION_URL}/files/${member.user.picture}`
+              : undefined,
+          },
+        };
+
+        return chatMember;
+      }),
+      messages: chat.messages.map((message) => {
+        const chatMember = {
+          ...message,
+          user: {
+            ...this.clearUserDate(message.user),
+            picture: message.user.picture
+              ? `${process.env.APPLICATION_URL}/files/${message.user.picture}`
+              : undefined,
+          },
+        };
+
+        return chatMember;
+      }),
+    };
   }
 
   // update(id: number, updateChatDto: UpdateChatDto) {
@@ -97,5 +145,16 @@ export class ChatService {
 
   remove(id: number) {
     return `This action removes a #${id} chat`;
+  }
+
+  clearUserDate(user: User) {
+    delete user.token;
+    delete user.password;
+    delete user.role;
+    delete user.strategy;
+    delete user.createdAt;
+    delete user.birthDate;
+
+    return user;
   }
 }

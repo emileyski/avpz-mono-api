@@ -30,9 +30,10 @@ export class ChatController {
     return this.chatService.findAll(userId);
   }
 
+  @UseGuards(AccessTokenGuard)
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.chatService.findOne(+id);
+  findOne(@Param('id') id: string, @UserId() userId: string) {
+    return this.chatService.findOne(id, userId);
   }
 
   // @Patch(':id')

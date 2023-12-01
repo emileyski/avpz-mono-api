@@ -25,6 +25,15 @@ export class AuthService {
       throw new UnauthorizedException('Invalid credentials');
     }
 
+    const userExists = await this.usersService.findOneByEmail(user.email);
+    if (userExists) {
+      const { accessToken, refreshToken } = await this.generateTokens({
+        id: userExists.id,
+        role: userExists.role,
+      });
+      return { accessToken, refreshToken };
+    }
+
     const { id, role } = await this.usersService.signupWithGoogle(user);
 
     const { accessToken, refreshToken } = await this.generateTokens({

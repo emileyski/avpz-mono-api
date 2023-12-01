@@ -2,7 +2,7 @@ import { Body, Controller, Get, Put, Query, UseGuards } from '@nestjs/common';
 import { UserService } from './user.service';
 import { AccessTokenGuard } from 'src/core/guards/access-token.guard';
 import { User } from 'src/core/decorators/user.decorator';
-import { ApiTags, ApiUnauthorizedResponse } from '@nestjs/swagger';
+import { ApiQuery, ApiTags, ApiUnauthorizedResponse } from '@nestjs/swagger';
 import { Public } from 'src/core/decorators/public.decorator';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UserId } from 'src/core/decorators/user-id.decorator';
@@ -12,6 +12,8 @@ import { UserId } from 'src/core/decorators/user-id.decorator';
 export class UserController {
   constructor(private readonly userService: UserService) {}
 
+  @ApiQuery({ name: 'name', required: false })
+  @ApiQuery({ name: 'nickname', required: false })
   @Public()
   @Get()
   getAllUsers(

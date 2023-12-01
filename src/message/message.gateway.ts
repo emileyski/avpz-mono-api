@@ -33,21 +33,36 @@ export class MessageGateway implements OnModuleInit {
   }
 
   @SubscribeMessage('newMessage')
-  onNewMessage(client: AuthenticatedSocket, boilerplateData: string) {
+  async onNewMessage(client: AuthenticatedSocket, boilerplateData: string) {
     // Получаем информацию о пользователе из payload
-    const data = JSON.parse(boilerplateData);
+    const data = JSON.parse(boilerplateData) as {
+      text: string;
+      chatId: string;
+    };
 
-    // Отправляем сообщение только тому, кому оно адресовано
-    const recipient = this.clients.find((c) => c.user.id === data.to);
-    console.log(recipient.user.id);
-    if (recipient) {
-      recipient.emit('newMessage', {
-        message: data.body,
-        from: client.user.id,
-        to: data.to,
-        // userInfo,
+    const { message, chatMemberIds } = await this.messageService
+      .create(data, client.user.id)
+      .then((res) => {
+        res.chatMemberIds = res.chatMemberIds.filter(
+          (id) => id !== client.user.id,
+        );
+        return res;
       });
-    }
+
+    chatMemberIds.forEach((chatMemberId) => {
+      const recipient = this.clients.find((c) => c.user.id === chatMemberId);
+
+      console.log(recipient.user.id);
+
+      if (recipient) {
+        recipient.emit('newMessage', {
+          message,
+          from: client.user.id,
+        });
+      }
+    });
+
+    return message;
   }
 
   // @SubscribeMessage('createMessage')
