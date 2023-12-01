@@ -1,5 +1,6 @@
+import { Message } from 'src/message/entities/message.entity';
 import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
-import { ChatUser } from './chat-user.entity';
+import { ChatMember } from './chat-member.entity';
 
 @Entity()
 export class Chat {
@@ -7,13 +8,16 @@ export class Chat {
   id: string;
 
   @Column({ nullable: true })
-  name?: string;
+  name: string;
 
   @Column({ default: new Date() })
   createdAt: Date;
 
-  @OneToMany(() => ChatUser, (chatUser) => chatUser.chat, {
+  @OneToMany(() => Message, (message) => message.chat, { onDelete: 'CASCADE' })
+  messages: Message[];
+
+  @OneToMany(() => ChatMember, (chatMember) => chatMember.chat, {
     onDelete: 'CASCADE',
   })
-  chatUsers: ChatUser[];
+  chatMembers: ChatMember[];
 }

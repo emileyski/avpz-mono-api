@@ -1,67 +1,101 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { CreateChatDto } from './dto/create-chat.dto';
-import { Chat } from './entities/chat.entity';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import { User } from 'src/user/entities/user.entity';
-import { ChatUser } from './entities/chat-user.entity';
+import { Chat } from './entities/chat.entity';
+import { ChildEntity, Repository } from 'typeorm';
+import { ChatMember } from './entities/chat-member.entity';
+import { UserService } from 'src/user/user.service';
 
 @Injectable()
 export class ChatService {
   constructor(
     @InjectRepository(Chat)
-    private chatRepository: Repository<Chat>,
-
-    @InjectRepository(User)
-    private userRepository: Repository<User>,
-
-    @InjectRepository(ChatUser)
-    private chatUserRepository: Repository<ChatUser>,
+    private chatsRepository: Repository<Chat>,
+    @InjectRepository(ChatMember)
+    private chatMembersRepository: Repository<ChatMember>,
+    private usersService: UserService,
   ) {}
-  async create(createChatDto: CreateChatDto, userId: string) {
-    // const chatUsers = this.
-    // await this.chatRepository.save(chat);
-    // return chat;
+  async create(userId: string, createChatDto: CreateChatDto) {
+    const interlocutor = await this.usersService.findOne(
+      createChatDto.interlocutorId,
+    );
 
-    const chat = this.chatRepository.create({
-      // chatUsers,
+    if (!interlocutor) {
+      throw new NotFoundException('Interlocutor not found');
+    }
+
+    const chat = this.chatsRepository.create({
+      chatMembers: [
+        {
+          user: { id: createChatDto.interlocutorId },
+        },
+        {
+          user: { id: userId },
+        },
+      ],
     });
 
-    await this.chatRepository.save(chat);
+    await this.chatsRepository.save(chat);
+    await this.chatMembersRepository.save(
+      chat.chatMembers.map((cm) => ({ ...cm, chat: { id: chat.id } })),
+    );
 
-    const chatUsers = this.chatUserRepository.create([
-      { user: { id: userId }, chat },
-      { user: { id: createChatDto.interlocutorId }, chat },
-    ]);
-
-    await this.chatUserRepository.save(chatUsers);
-
-    return { ...chat, members: chatUsers.map((chatUser) => chatUser.user) };
+    return chat;
   }
 
-  async findAllByUserId(userId: string) {
-    //нужно получить все чаты, в которых участвует пользователь с userId и добавить информацию об остальных участниках
-
-    const chats = await this.chatUserRepository.find({
+  async findAll(userId: string) {
+    // Найти все чаты, в которых участвует пользователь
+    const userChats = await this.chatMembersRepository.find({
       where: { user: { id: userId } },
-      relations: ['chat', 'chat.chatUsers', 'chat.chatUsers.user'],
+      relations: ['chat', 'chat.chatMembers', 'chat.chatMembers.user'],
     });
 
-    // return chats;
+    // Извлечь уникальные чаты из результата (если это необходимо)
+    const uniqueChats = Array.from(
+      new Set(userChats.map((chatMember) => chatMember.chat)),
+    );
 
-    return chats.map((c) => {
-      const chat = c.chat;
-      chat.chatUsers.forEach((chatUser) => {
-        delete chatUser.user.password;
-        delete chatUser.user.token;
-        delete chatUser.user.createdAt;
-        delete chatUser.user.role;
-        delete chatUser.user.birthDate;
-        delete chatUser.user.about;
-        delete chatUser.user.strategy;
-        chatUser.user.picture = ``;
-      });
-      return { ...chat };
+    // Получить всех участников этих чатов без дублирования
+    const chatMembersWithUsers = uniqueChats.map((chat) => {
+      const uniqueMembers = Array.from(
+        new Set(chat.chatMembers.map((member) => member.user)),
+      );
+
+      return {
+        chat: {
+          id: chat.id,
+          name: chat.name,
+          createdAt: chat.createdAt,
+        },
+        members: uniqueMembers.map((user) => ({
+          id: user.id,
+          email: user.email,
+          name: user.name,
+          birthDate: user.birthDate,
+          createdAt: user.createdAt,
+          about: user.about,
+          nickname: user.nickname,
+          gender: user.gender,
+          picture: user.picture
+            ? `${process.env.APPLICATION_URL}/files/${user.picture}`
+            : undefined,
+          strategy: user.strategy,
+        })),
+      };
     });
+
+    return chatMembersWithUsers;
+  }
+
+  findOne(id: number) {
+    return `This action returns a #${id} chat`;
+  }
+
+  // update(id: number, updateChatDto: UpdateChatDto) {
+  //   return `This action updates a #${id} chat`;
+  // }
+
+  remove(id: number) {
+    return `This action removes a #${id} chat`;
   }
 }

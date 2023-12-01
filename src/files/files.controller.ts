@@ -14,7 +14,7 @@ import { imageFileFilter } from '../utils/file-upload.utils';
 import { Public } from 'src/core/decorators/public.decorator';
 import { FilesService } from './files.service';
 import { Response } from 'express';
-import { ApiTags } from '@nestjs/swagger';
+import { ApiParam, ApiTags } from '@nestjs/swagger';
 
 @ApiTags('files (some work in test mode)')
 @Controller('files')
@@ -42,6 +42,7 @@ export class FilesController {
     return this.filesService.saveMany(files);
   }
 
+  @ApiParam({ name: 'fileId', type: 'string' })
   @Public()
   @Get(':fileId')
   async getFile(@Param('fileId') fileId, @Res() res: Response) {
