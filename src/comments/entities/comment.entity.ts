@@ -20,25 +20,14 @@ export class Comment {
   @Column({ default: new Date() })
   createdAt: Date;
 
-  @ManyToOne(() => User, (user) => user.comments)
+  @ManyToOne(() => User, (user) => user.comments, { onDelete: 'CASCADE' })
   user: User;
 
   @ManyToOne(() => Post, (post) => post.comments, { onDelete: 'CASCADE' })
   post: Post;
 
-  // @ManyToOne(() => Comment, (comment) => comment.replies, {
-  //   onDelete: 'CASCADE',
-  // })
-  // parentComment: Comment;
-
-  // @OneToMany(() => Comment, (comment) => comment.parentComment)
-  // replies: Comment[];
-
   @OneToMany(() => CommentLike, (commentLike) => commentLike.comment, {
     onDelete: 'CASCADE',
   })
   likes: CommentLike[];
-
-  // @Column({ default: 0 })
-  // reppliesCount: number;
 }

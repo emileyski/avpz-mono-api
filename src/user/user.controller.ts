@@ -1,11 +1,11 @@
-import { Body, Controller, Get, Put, Query, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Patch, Query, UseGuards } from '@nestjs/common';
 import { UserService } from './user.service';
 import { AccessTokenGuard } from 'src/core/guards/access-token.guard';
 import { User } from 'src/core/decorators/user.decorator';
 import { ApiQuery, ApiTags, ApiUnauthorizedResponse } from '@nestjs/swagger';
 import { Public } from 'src/core/decorators/public.decorator';
-import { CreateUserDto } from './dto/create-user.dto';
 import { UserId } from 'src/core/decorators/user-id.decorator';
+import { Genders } from 'src/core/enums/gender.enum';
 
 @ApiTags('user')
 @Controller('user')
@@ -47,18 +47,47 @@ export class UserController {
   }
 
   @UseGuards(AccessTokenGuard)
-  @Put()
-  async update(@UserId() userId: string, @Body() body: CreateUserDto) {
-    const userData = await this.userService.update(userId, body);
+  @Patch('email')
+  updateEmail(@UserId() userId: string, @Body('email') email: string) {
+    return this.userService.updateEmail(userId, email);
+  }
 
-    if (userData.picture) {
-      const API_URL = process.env.API_URL || 'http://localhost:3000';
-      userData.picture = `${API_URL}/api/files/${userData.picture}`;
-    }
+  @UseGuards(AccessTokenGuard)
+  @Patch('name')
+  updateName(@UserId() userId: string, @Body('name') name: string) {
+    return this.userService.updateName(userId, name);
+  }
 
-    delete userData.password;
-    delete userData.token;
+  @UseGuards(AccessTokenGuard)
+  @Patch('password')
+  updatePassword(@UserId() userId: string, @Body('password') password: string) {
+    return this.userService.updatePassword(userId, password);
+  }
 
-    return userData;
+  @UseGuards(AccessTokenGuard)
+  @Patch('birth-date')
+  updateBirthDate(
+    @UserId() userId: string,
+    @Body('birthDate') birthDate: string,
+  ) {
+    return this.userService.updateBirthDate(userId, birthDate);
+  }
+
+  @UseGuards(AccessTokenGuard)
+  @Patch('about')
+  updateAbout(@UserId() userId: string, @Body('about') about: string) {
+    return this.userService.updateAbout(userId, about);
+  }
+
+  @UseGuards(AccessTokenGuard)
+  @Patch('gender')
+  updateGender(@UserId() userId: string, @Body('gender') gender: Genders) {
+    return this.userService.updateGender(userId, gender);
+  }
+
+  @UseGuards(AccessTokenGuard)
+  @Patch('nickname')
+  updateNickname(@UserId() userId: string, @Body('nickname') nickname: string) {
+    return this.userService.updateNickname(userId, nickname);
   }
 }

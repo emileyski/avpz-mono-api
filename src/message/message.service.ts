@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { ForbiddenException, Injectable } from '@nestjs/common';
 import { CreateMessageDto } from './dto/create-message.dto';
 import { UpdateMessageDto } from './dto/update-message.dto';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -27,22 +27,69 @@ export class MessageService {
       relations: ['chatMembers', 'chatMembers.user'],
     });
 
-    return { message, chatMemberIds: chat.chatMembers.map((cm) => cm.user.id) };
+    return {
+      message,
+      chatMemberIds: chat.chatMembers
+        .map((cm) => cm.user.id)
+        .filter((id) => id !== userId),
+    };
   }
 
-  findAll() {
-    return `This action returns all message`;
+  async update(updateMessageDto: UpdateMessageDto, userId: string) {
+    console.log(updateMessageDto, userId);
+
+    const message = await this.messagesRepository.findOne({
+      where: { id: updateMessageDto.id, user: { id: userId } },
+      relations: ['chat'],
+    });
+
+    if (!message) {
+      throw new ForbiddenException(
+        'You are not allowed to update this message or message does not exist',
+      );
+    }
+
+    message.text = updateMessageDto.text;
+
+    await this.messagesRepository.save(message);
+
+    const chat = await this.chatsRepository.findOne({
+      where: { id: updateMessageDto.chatId },
+      relations: ['chatMembers', 'chatMembers.user'],
+    });
+
+    return {
+      message,
+      chatMemberIds: chat.chatMembers
+        .map((cm) => cm.user.id)
+        .filter((id) => id !== userId),
+    };
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} message`;
-  }
+  async remove(updateMessageDto: UpdateMessageDto, userId: string) {
+    const message = await this.messagesRepository.findOne({
+      where: { id: updateMessageDto.id, user: { id: userId } },
+      relations: ['chat'],
+    });
 
-  update(id: number, updateMessageDto: UpdateMessageDto) {
-    return `This action updates a #${id} message`;
-  }
+    if (!message) {
+      throw new ForbiddenException(
+        'You are not allowed to delete this message or message does not exist',
+      );
+    }
 
-  remove(id: number) {
-    return `This action removes a #${id} message`;
+    await this.messagesRepository.remove(message);
+
+    const chat = await this.chatsRepository.findOne({
+      where: { id: updateMessageDto.chatId },
+      relations: ['chatMembers', 'chatMembers.user'],
+    });
+
+    return {
+      message,
+      chatMemberIds: chat.chatMembers
+        .map((cm) => cm.user.id)
+        .filter((id) => id !== userId),
+    };
   }
 }

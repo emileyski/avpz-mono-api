@@ -61,9 +61,8 @@ export class AuthService {
   }
 
   async signIn(signInDto: SignInDto): Promise<Tokens> {
-    const { id, role, password } = await this.usersService.findOneByEmail(
-      signInDto.email,
-    );
+    const { id, role, password } =
+      await this.usersService.findOneOrThrowByEmail(signInDto.email);
 
     const isPasswordValid = await verify(password, signInDto.password);
 

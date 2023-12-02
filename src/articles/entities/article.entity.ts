@@ -25,6 +25,6 @@ export class Article {
   @Column({ type: 'jsonb', nullable: true })
   tags?: string[];
 
-  @ManyToOne(() => User, (user) => user.articles)
+  @ManyToOne(() => User, (user) => user.articles, { onDelete: 'CASCADE' })
   user: User;
 }

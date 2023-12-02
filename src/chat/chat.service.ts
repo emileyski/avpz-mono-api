@@ -107,14 +107,13 @@ export class ChatService {
       throw new NotFoundException('Chat not found');
     }
 
-    //TODO: отрефакторить этот код (возможно вынести в отдельный метод)
     return {
       ...chat,
       chatMembers: chat.chatMembers.map((member) => {
         const chatMember = {
           ...member,
           user: {
-            ...this.clearUserDate(member.user),
+            ...this.clearUserData(member.user),
             picture: member.user.picture
               ? `${process.env.APPLICATION_URL}/files/${member.user.picture}`
               : undefined,
@@ -127,7 +126,7 @@ export class ChatService {
         const chatMember = {
           ...message,
           user: {
-            ...this.clearUserDate(message.user),
+            ...this.clearUserData(message.user),
             picture: message.user.picture
               ? `${process.env.APPLICATION_URL}/files/${message.user.picture}`
               : undefined,
@@ -139,15 +138,26 @@ export class ChatService {
     };
   }
 
-  // update(id: number, updateChatDto: UpdateChatDto) {
-  //   return `This action updates a #${id} chat`;
-  // }
+  async remove(id: string, userId: string) {
+    const chat = await this.chatsRepository.findOne({
+      where: { id },
+      relations: ['chatMembers', 'chatMembers.user'],
+    });
 
-  remove(id: number) {
-    return `This action removes a #${id} chat`;
+    if (!chat) {
+      throw new NotFoundException('Chat not found');
+    }
+
+    if (!chat.chatMembers.some((member) => member.user.id === userId)) {
+      throw new NotFoundException('Chat not found');
+    }
+
+    await this.chatsRepository.remove(chat);
+
+    return { message: `Chat #${id} was deleted` };
   }
 
-  clearUserDate(user: User) {
+  clearUserData(user: User) {
     delete user.token;
     delete user.password;
     delete user.role;

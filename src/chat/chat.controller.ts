@@ -12,7 +12,9 @@ import { ChatService } from './chat.service';
 import { CreateChatDto } from './dto/create-chat.dto';
 import { AccessTokenGuard } from 'src/core/guards/access-token.guard';
 import { UserId } from 'src/core/decorators/user-id.decorator';
+import { ApiTags } from '@nestjs/swagger';
 
+@ApiTags('chat')
 @Controller('chat')
 export class ChatController {
   constructor(private readonly chatService: ChatService) {}
@@ -36,13 +38,9 @@ export class ChatController {
     return this.chatService.findOne(id, userId);
   }
 
-  // @Patch(':id')
-  // update(@Param('id') id: string, @Body() updateChatDto: UpdateChatDto) {
-  //   return this.chatService.update(+id, updateChatDto);
-  // }
-
+  @UseGuards(AccessTokenGuard)
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.chatService.remove(+id);
+  remove(@Param('id') id: string, @UserId() userId: string) {
+    return this.chatService.remove(id, userId);
   }
 }

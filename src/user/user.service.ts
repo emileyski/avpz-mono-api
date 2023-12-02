@@ -11,6 +11,7 @@ import { hash } from 'argon2';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { Roles } from 'src/core/enums/roles.enum';
 import { StrategyTypes } from 'src/core/enums/strategy.enum';
+import { Genders } from 'src/core/enums/gender.enum';
 
 @Injectable()
 export class UserService {
@@ -130,14 +131,100 @@ export class UserService {
     return await this.usersRepository.save(user);
   }
 
-  async update(id: string, updateUserDto: UpdateUserDto): Promise<User> {
+  async updateNickname(id: string, nickname: string): Promise<User> {
     const user = await this.findOne(id);
 
     if (!user) throw new NotFoundException('User not found');
 
     try {
-      this.usersRepository.merge(user, updateUserDto);
-      return await this.usersRepository.save(user);
+      this.usersRepository.merge(user, { nickname });
+      const updatedUser = await this.usersRepository.save(user);
+      return this.removeCredentials(updatedUser);
+    } catch (error) {
+      throw new ConflictException('Some error occured while updating user');
+    }
+  }
+
+  async updateName(id: string, name: string): Promise<User> {
+    const user = await this.findOne(id);
+
+    if (!user) throw new NotFoundException('User not found');
+
+    try {
+      this.usersRepository.merge(user, { name });
+      const updatedUser = await this.usersRepository.save(user);
+      return this.removeCredentials(updatedUser);
+    } catch (error) {
+      throw new ConflictException('Some error occured while updating user');
+    }
+  }
+
+  async updatePassword(id: string, password: string): Promise<User> {
+    const user = await this.findOne(id);
+
+    if (!user) throw new NotFoundException('User not found');
+
+    try {
+      const hashedPassword = await hash(password);
+      this.usersRepository.merge(user, { password: hashedPassword });
+      const updatedUser = await this.usersRepository.save(user);
+      return this.removeCredentials(updatedUser);
+    } catch (error) {
+      throw new ConflictException('Some error occured while updating user');
+    }
+  }
+
+  async updateBirthDate(id: string, birthDate: string): Promise<User> {
+    const user = await this.findOne(id);
+
+    if (!user) throw new NotFoundException('User not found');
+
+    try {
+      this.usersRepository.merge(user, { birthDate });
+      const updatedUser = await this.usersRepository.save(user);
+      return this.removeCredentials(updatedUser);
+    } catch (error) {
+      throw new ConflictException('Some error occured while updating user');
+    }
+  }
+
+  async updateAbout(id: string, about: string): Promise<User> {
+    const user = await this.findOne(id);
+
+    if (!user) throw new NotFoundException('User not found');
+
+    try {
+      this.usersRepository.merge(user, { about });
+      const updatedUser = await this.usersRepository.save(user);
+      return this.removeCredentials(updatedUser);
+    } catch (error) {
+      throw new ConflictException('Some error occured while updating user');
+    }
+  }
+
+  async updateGender(id: string, gender: Genders): Promise<User> {
+    const user = await this.findOne(id);
+
+    if (!user) throw new NotFoundException('User not found');
+
+    try {
+      this.usersRepository.merge(user, { gender });
+      const updatedUser = await this.usersRepository.save(user);
+      return this.removeCredentials(updatedUser);
+    } catch (error) {
+      throw new ConflictException('Some error occured while updating user');
+    }
+  }
+
+  async updateEmail(id: string, email: string): Promise<User> {
+    const user = await this.findOne(id);
+
+    if (!user) throw new NotFoundException('User not found');
+
+    try {
+      this.usersRepository.merge(user, { email });
+      const updatedUser = await this.usersRepository.save(user);
+      return this.removeCredentials(updatedUser);
     } catch (error) {
       throw new ConflictException('Some error occured while updating user');
     }
@@ -174,11 +261,23 @@ export class UserService {
     return user;
   }
 
-  async findOneByEmail(email: string): Promise<User> {
+  async findOneOrThrowByEmail(email: string): Promise<User> {
     const user = await this.usersRepository.findOneBy({ email });
     if (!user) {
       throw new NotFoundException('User not found');
     }
+    return user;
+  }
+
+  async findOneByEmail(email: string): Promise<User> {
+    const user = await this.usersRepository.findOneBy({ email });
+
+    return user;
+  }
+
+  removeCredentials(user: User): User {
+    delete user.password;
+    delete user.token;
     return user;
   }
 }

@@ -43,6 +43,8 @@ export class AuthController {
   @Get('google/callback')
   @UseGuards(GoogleOAuthGuard)
   googleAuthRedirect(@User() user: any) {
+    console.log('user', user);
+
     return this.authService.googleLogin(user);
   }
 

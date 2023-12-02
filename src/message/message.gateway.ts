@@ -10,6 +10,9 @@ import {
   AuthenticatedSocket,
   SocketAuthMiddleware,
 } from 'src/core/middlewares/ws.mw';
+import { UpdateMessageDto } from './dto/update-message.dto';
+import { CreateMessageDto } from './dto/create-message.dto';
+import { DeleteMessageDto } from './dto/delete-message.dto';
 
 @WebSocketGateway({ namespace: 'message' })
 export class MessageGateway implements OnModuleInit {
@@ -34,59 +37,83 @@ export class MessageGateway implements OnModuleInit {
 
   @SubscribeMessage('newMessage')
   async onNewMessage(client: AuthenticatedSocket, boilerplateData: string) {
-    // Получаем информацию о пользователе из payload
-    const data = JSON.parse(boilerplateData) as {
-      text: string;
-      chatId: string;
-    };
+    try {
+      // Получаем информацию о пользователе из payload
+      const data = JSON.parse(boilerplateData) as CreateMessageDto;
 
-    const { message, chatMemberIds } = await this.messageService
-      .create(data, client.user.id)
-      .then((res) => {
-        res.chatMemberIds = res.chatMemberIds.filter(
-          (id) => id !== client.user.id,
-        );
-        return res;
+      const { message, chatMemberIds } = await this.messageService.create(
+        data,
+        client.user.id,
+      );
+
+      chatMemberIds.forEach((chatMemberId) => {
+        const recipient = this.clients.find((c) => c.user.id === chatMemberId);
+
+        if (recipient) {
+          recipient.emit('newMessage', {
+            message,
+            from: client.user.id,
+          });
+        }
       });
 
-    chatMemberIds.forEach((chatMemberId) => {
-      const recipient = this.clients.find((c) => c.user.id === chatMemberId);
-
-      console.log(recipient.user.id);
-
-      if (recipient) {
-        recipient.emit('newMessage', {
-          message,
-          from: client.user.id,
-        });
-      }
-    });
-
-    return message;
+      return message;
+    } catch (e) {
+      return e;
+    }
   }
 
-  // @SubscribeMessage('createMessage')
-  // create(@MessageBody() createMessageDto: CreateMessageDto) {
-  //   return this.messageService.create(createMessageDto);
-  // }
+  @SubscribeMessage('updateMessage')
+  async onUpdateMessage(client: AuthenticatedSocket, boilerplateData: string) {
+    try {
+      const data = JSON.parse(boilerplateData) as UpdateMessageDto;
 
-  // @SubscribeMessage('findAllMessage')
-  // findAll() {
-  //   return this.messageService.findAll();
-  // }
+      const { message, chatMemberIds } = await this.messageService.update(
+        data,
+        client.user.id,
+      );
 
-  // @SubscribeMessage('findOneMessage')
-  // findOne(@MessageBody() id: number) {
-  //   return this.messageService.findOne(id);
-  // }
+      chatMemberIds.forEach((chatMemberId) => {
+        const recipient = this.clients.find((c) => c.user.id === chatMemberId);
 
-  // @SubscribeMessage('updateMessage')
-  // update(@MessageBody() updateMessageDto: UpdateMessageDto) {
-  //   return this.messageService.update(updateMessageDto.id, updateMessageDto);
-  // }
+        if (recipient) {
+          recipient.emit('updateMessage', {
+            message,
+            from: client.user.id,
+          });
+        }
+      });
 
-  // @SubscribeMessage('removeMessage')
-  // remove(@MessageBody() id: number) {
-  //   return this.messageService.remove(id);
-  // }
+      return message;
+    } catch (e) {
+      return e;
+    }
+  }
+
+  @SubscribeMessage('deleteMessage')
+  async onDeleteMessage(client: AuthenticatedSocket, boilerplateData: string) {
+    try {
+      const data = JSON.parse(boilerplateData) as DeleteMessageDto;
+
+      const { message, chatMemberIds } = await this.messageService.remove(
+        data,
+        client.user.id,
+      );
+
+      chatMemberIds.forEach((chatMemberId) => {
+        const recipient = this.clients.find((c) => c.user.id === chatMemberId);
+
+        if (recipient) {
+          recipient.emit('deleteMessage', {
+            message: { ...message, id: data.id },
+            from: client.user.id,
+          });
+        }
+      });
+
+      return message;
+    } catch (e) {
+      return e;
+    }
+  }
 }

@@ -25,7 +25,7 @@ export class Post {
   @Column({ default: new Date() })
   createdAt: Date;
 
-  @ManyToOne(() => User, (user) => user.posts)
+  @ManyToOne(() => User, (user) => user.posts, { onDelete: 'CASCADE' })
   user: User;
 
   @Column({ type: 'jsonb', nullable: true, default: [] })
