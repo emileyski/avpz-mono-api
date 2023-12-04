@@ -4,6 +4,7 @@ import {
   Get,
   HttpCode,
   Post,
+  Res,
   UploadedFile,
   UseGuards,
   UseInterceptors,
@@ -42,10 +43,11 @@ export class AuthController {
   @Public()
   @Get('google/callback')
   @UseGuards(GoogleOAuthGuard)
-  googleAuthRedirect(@User() user: any) {
-    console.log('user', user);
-
-    return this.authService.googleLogin(user);
+  async googleAuthRedirect(@User() user: any, @Res() res: any) {
+    const tokens = await this.authService.googleLogin(user);
+    res.redirect(
+      `http://${process.env.CLIENT_URL}/withGoogle?accessToken=${tokens.accessToken}&refreshToken=${tokens.refreshToken}`,
+    );
   }
 
   @ApiBadRequestResponse({
