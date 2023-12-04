@@ -7,6 +7,7 @@ import { RefreshTokenStrategy } from './strategies/refresh-token.strategy';
 import { AccessTokenStrategy } from './strategies/access-token.strategy';
 import { FilesModule } from 'src/files/files.module';
 import { GoogleStrategy } from './strategies/google.strategy';
+import { GithubStrategy } from './strategies/github-strategy';
 
 @Module({
   imports: [
@@ -33,6 +34,7 @@ import { GoogleStrategy } from './strategies/google.strategy';
     RefreshTokenStrategy,
     AuthService,
     GoogleStrategy,
+    GithubStrategy,
   ],
   exports: [AccessTokenStrategy, RefreshTokenStrategy],
 })

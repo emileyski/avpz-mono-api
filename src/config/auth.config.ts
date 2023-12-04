@@ -32,6 +32,8 @@ export default registerAs<AuthConfig>('auth', (): AuthConfig => {
   return {
     googleId: process.env.GOOGLE_CLIENT_ID,
     googleSecret: process.env.GOOGLE_CLIENT_SECRET,
+    githubId: process.env.GITHUB_CLIENT_ID,
+    githubSecret: process.env.GITHUB_CLIENT_SECRET,
     applicationUrl: process.env.APPLICATION_URL,
     secret: process.env.ACCESS_TOKEN_SECRET,
     expires: process.env.ACCESS_TOKEN_EXPIRES_IN,

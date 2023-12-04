@@ -11,6 +11,7 @@ import { hash, verify } from 'argon2';
 import { SignInDto } from './dto/sign-in.dto';
 import { UserService } from 'src/user/user.service';
 import { FilesService } from 'src/files/files.service';
+import { StrategyTypes } from 'src/core/enums/strategy.enum';
 
 @Injectable()
 export class AuthService {
@@ -20,7 +21,10 @@ export class AuthService {
     private readonly filesService: FilesService,
   ) {}
 
-  async googleLogin(user: any): Promise<Tokens> {
+  async loginWithAnotherProvider(
+    user: any,
+    strategy: StrategyTypes,
+  ): Promise<Tokens> {
     if (!user) {
       throw new UnauthorizedException('Invalid credentials');
     }
@@ -34,7 +38,10 @@ export class AuthService {
       return { accessToken, refreshToken };
     }
 
-    const { id, role } = await this.usersService.signupWithGoogle(user);
+    const { id, role } = await this.usersService.signupWithAnotherProvider(
+      user,
+      strategy,
+    );
 
     const { accessToken, refreshToken } = await this.generateTokens({
       id,
@@ -43,6 +50,30 @@ export class AuthService {
 
     return { accessToken, refreshToken };
   }
+
+  // async googleLogin(user: any): Promise<Tokens> {
+  //   if (!user) {
+  //     throw new UnauthorizedException('Invalid credentials');
+  //   }
+
+  //   const userExists = await this.usersService.findOneByEmail(user.email);
+  //   if (userExists) {
+  //     const { accessToken, refreshToken } = await this.generateTokens({
+  //       id: userExists.id,
+  //       role: userExists.role,
+  //     });
+  //     return { accessToken, refreshToken };
+  //   }
+
+  //   const { id, role } = await this.usersService.signupWithGoogle(user);
+
+  //   const { accessToken, refreshToken } = await this.generateTokens({
+  //     id,
+  //     role,
+  //   });
+
+  //   return { accessToken, refreshToken };
+  // }
 
   async signUp(signUpDto: SignUpDto, picture): Promise<Tokens> {
     const { id, role } = await this.usersService.create(signUpDto);

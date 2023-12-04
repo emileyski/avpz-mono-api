@@ -8,7 +8,6 @@ import { User } from './entities/user.entity';
 import { Repository } from 'typeorm';
 import { CreateUserDto } from './dto/create-user.dto';
 import { hash } from 'argon2';
-import { UpdateUserDto } from './dto/update-user.dto';
 import { Roles } from 'src/core/enums/roles.enum';
 import { StrategyTypes } from 'src/core/enums/strategy.enum';
 import { Genders } from 'src/core/enums/gender.enum';
@@ -20,7 +19,10 @@ export class UserService {
     private usersRepository: Repository<User>,
   ) {}
 
-  async signupWithGoogle(user: any): Promise<User> {
+  async signupWithAnotherProvider(
+    user: any,
+    strategy: StrategyTypes,
+  ): Promise<User> {
     const { name, email, nickname } = user;
     const userExists = await this.usersRepository.findOneBy({ email });
     if (userExists) {
@@ -31,11 +33,28 @@ export class UserService {
       name,
       email,
       nickname,
-      strategy: StrategyTypes.GOOGLE,
+      strategy: strategy,
     });
 
     return await this.usersRepository.save(newUser);
   }
+
+  // async signupWithGoogle(user: any): Promise<User> {
+  //   const { name, email, nickname } = user;
+  //   const userExists = await this.usersRepository.findOneBy({ email });
+  //   if (userExists) {
+  //     throw new ConflictException('User with this email is already exists');
+  //   }
+
+  //   const newUser = this.usersRepository.create({
+  //     name,
+  //     email,
+  //     nickname,
+  //     strategy: StrategyTypes.GOOGLE,
+  //   });
+
+  //   return await this.usersRepository.save(newUser);
+  // }
   async getAll(name?: string, nickname?: string): Promise<any[]> {
     const queryBuilder = this.usersRepository
       .createQueryBuilder('user')

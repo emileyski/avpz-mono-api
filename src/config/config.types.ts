@@ -1,6 +1,8 @@
 export type AuthConfig = {
   googleId: string;
   googleSecret: string;
+  githubId: string;
+  githubSecret: string;
   applicationUrl: string;
   secret: string;
   expires: string;

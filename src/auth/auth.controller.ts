@@ -29,6 +29,8 @@ import { AccessTokenGuard } from 'src/core/guards/access-token.guard';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { imageFileFilter } from 'src/utils/file-upload.utils';
 import { GoogleOAuthGuard } from 'src/core/guards/google-oauth.guard';
+import { GithubOAuthGuard } from 'src/core/guards/github-oauth.guard';
+import { StrategyTypes } from 'src/core/enums/strategy.enum';
 
 @ApiTags('auth')
 @Controller('auth')
@@ -44,9 +46,30 @@ export class AuthController {
   @Get('google/callback')
   @UseGuards(GoogleOAuthGuard)
   async googleAuthRedirect(@User() user: any, @Res() res: any) {
-    const tokens = await this.authService.googleLogin(user);
+    const tokens = await this.authService.loginWithAnotherProvider(
+      user,
+      StrategyTypes.GOOGLE,
+    );
     res.redirect(
-      `http://${process.env.CLIENT_URL}/withGoogle?accessToken=${tokens.accessToken}&refreshToken=${tokens.refreshToken}`,
+      `http://${process.env.CLIENT_URL}/authCallback?accessToken=${tokens.accessToken}&refreshToken=${tokens.refreshToken}`,
+    );
+  }
+
+  @Public()
+  @Get('github')
+  @UseGuards(GithubOAuthGuard)
+  async githubAuth() {}
+
+  @Public()
+  @Get('github/callback')
+  @UseGuards(GithubOAuthGuard)
+  async githubAuthRedirect(@User() user: any, @Res() res: any) {
+    const tokens = await this.authService.loginWithAnotherProvider(
+      user,
+      StrategyTypes.GITHUB,
+    );
+    res.redirect(
+      `http://${process.env.CLIENT_URL}/authCallback?accessToken=${tokens.accessToken}&refreshToken=${tokens.refreshToken}`,
     );
   }
 
