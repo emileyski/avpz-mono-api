@@ -44,8 +44,9 @@ export class ArticlesController {
     return this.articlesService.update(+id, updateArticleDto);
   }
 
+  @UseGuards(AccessTokenGuard)
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.articlesService.remove(+id);
+  remove(@Param('id') id: string, @UserId() userId: string) {
+    return this.articlesService.remove(id, userId);
   }
 }

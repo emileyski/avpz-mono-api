@@ -13,6 +13,7 @@ import { ConfigModule } from '@nestjs/config';
 // import { ChatModule } from './chat-some/chat.module';
 import { ChatModule } from './chat/chat.module';
 import { MessageModule } from './message/message.module';
+import { AdminPanelModule } from './admin-panel/admin-panel.module';
 import authConfig from './config/auth.config';
 
 @Module({
@@ -39,6 +40,7 @@ import authConfig from './config/auth.config';
     PostLikesModule,
     ChatModule,
     MessageModule,
+    AdminPanelModule,
   ],
   providers: [
     // {

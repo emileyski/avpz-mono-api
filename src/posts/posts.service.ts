@@ -45,6 +45,46 @@ export class PostsService {
     };
   }
 
+  async getByUserId(userId: string) {
+    const posts = await this.postsRepository
+      .createQueryBuilder('post')
+      .select([
+        'post.id',
+        'post.title',
+        'post.body',
+        'post.pictures',
+        'post.createdAt',
+        'user.name',
+        'user.nickname',
+        'user.id',
+      ])
+      .addSelect(['likes.id', 'likeUser.id'])
+      .leftJoin('post.user', 'user')
+      .leftJoin('post.likes', 'likes')
+      .leftJoin('likes.user', 'likeUser')
+      .leftJoinAndSelect('post.comments', 'comments')
+      .where('user.id = :id', { id: userId })
+      .getMany();
+
+    // Добавляем поле isLiked в каждый пост
+    posts.forEach((post) => {
+      post.pictures = post.pictures.map(
+        (picture) => `${this.API_URL}/api/files/${picture}`,
+      );
+
+      // Проверяем, есть ли свойство likes и лайкнут ли текущий пользователь этот пост
+      post.isLiked = post.likes.some((like) => like.user.id === userId);
+      post.likeCount = post.likes ? post.likes.length : 0;
+
+      post.commentCount = post.comments ? post.comments.length : 0;
+
+      delete post.comments; // Удаляем свойство comments
+      delete post.likes; // Удаляем свойство likes
+    });
+
+    return posts;
+  }
+
   async findAll(userId?: string) {
     const posts = await this.postsRepository
       .createQueryBuilder('post')
@@ -104,20 +144,11 @@ export class PostsService {
         'commentUser.nickname',
       ])
       .addSelect(['likes.id', 'likeUser.id'])
-      .addSelect([
-        'replies.id',
-        'replies.body',
-        'replies.createdAt',
-        'replyUser.id',
-        'replyUser.name',
-      ]) // Include reply information
       .leftJoin('post.user', 'user')
       .leftJoin('post.comments', 'comment')
       .leftJoin('comment.user', 'commentUser') // Add user information for comments
       .leftJoin('post.likes', 'likes')
-      .leftJoin('likes.user', 'likeUser')
-      .leftJoinAndSelect('comment.replies', 'replies') // Include replies for comments
-      .leftJoin('replies.user', 'replyUser') // Add user information for replies
+      .leftJoin('likes.user', 'likeUser') // Add user information for replies
       .where('post.id = :id', { id })
       .getOne();
 

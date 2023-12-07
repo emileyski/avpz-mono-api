@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { CreateArticleDto } from './dto/create-article.dto';
 import { UpdateArticleDto } from './dto/update-article.dto';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -56,7 +56,16 @@ export class ArticlesService {
     return `This action updates a #${id} article`;
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} article`;
+  async remove(id: string, userId: string) {
+    const removeResult = await this.articleRepository.delete({
+      id,
+      user: { id: userId },
+    });
+
+    if (!removeResult.affected) {
+      throw new NotFoundException('Article not found or you are not the owner');
+    }
+
+    return { message: `Article with id ${id} was deleted` };
   }
 }

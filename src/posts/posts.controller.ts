@@ -48,6 +48,12 @@ export class PostsController {
     return this.postsService.findAll(userId);
   }
 
+  @UseGuards(AccessTokenGuard)
+  @Get('my-posts')
+  getMyPosts(@UserId() userId: string) {
+    return this.postsService.getByUserId(userId);
+  }
+
   @Public()
   @Get(':id')
   findOne(@Param('id') id: string) {

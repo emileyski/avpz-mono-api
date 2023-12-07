@@ -1,4 +1,12 @@
-import { Body, Controller, Get, Patch, Query, UseGuards } from '@nestjs/common';
+import {
+  BadRequestException,
+  Body,
+  Controller,
+  Get,
+  Patch,
+  Query,
+  UseGuards,
+} from '@nestjs/common';
 import { UserService } from './user.service';
 import { AccessTokenGuard } from 'src/core/guards/access-token.guard';
 import { User } from 'src/core/decorators/user.decorator';
@@ -46,9 +54,16 @@ export class UserController {
     return userData;
   }
 
+  match(email: string, pattern: RegExp): boolean {
+    return pattern.test(email);
+  }
+
   @UseGuards(AccessTokenGuard)
   @Patch('email')
   updateEmail(@UserId() userId: string, @Body('email') email: string) {
+    const isValidEmail = this.match(email, /\S+@\S+\.\S+/);
+    if (!isValidEmail) throw new BadRequestException('Invalid email');
+
     return this.userService.updateEmail(userId, email);
   }
 
