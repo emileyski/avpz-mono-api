@@ -14,6 +14,7 @@ import { ConfigModule } from '@nestjs/config';
 import { ChatModule } from './chat/chat.module';
 import { MessageModule } from './message/message.module';
 import { AdminPanelModule } from './admin-panel/admin-panel.module';
+import { ForumModule } from './forum/forum.module';
 import authConfig from './config/auth.config';
 
 @Module({
@@ -41,6 +42,7 @@ import authConfig from './config/auth.config';
     ChatModule,
     MessageModule,
     AdminPanelModule,
+    ForumModule,
   ],
   providers: [
     // {

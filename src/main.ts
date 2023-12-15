@@ -15,6 +15,14 @@ async function bootstrap() {
     .setTitle('Skillhub backend')
     .setDescription('Skillhub API')
     .setVersion('1.0')
+    .addBearerAuth({
+      type: 'http',
+      scheme: 'Bearer',
+      description: 'Enter access token here',
+      bearerFormat: 'Bearer ${token}',
+      in: 'header',
+      name: 'Authorization',
+    })
     .build();
 
   const document = SwaggerModule.createDocument(app, options);
