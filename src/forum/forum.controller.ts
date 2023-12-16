@@ -60,13 +60,19 @@ export class ForumController {
     return this.forumService.setForumRole(userId, setForumRoleDto);
   }
 
+  @ApiBearerAuth()
+  @UseGuards(AccessTokenGuard)
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateForumDto: UpdateForumDto) {
-    return this.forumService.update(+id, updateForumDto);
+  update(
+    @Param('id') id: string,
+    @Body() updateForumDto: UpdateForumDto,
+    @UserId() userId: string,
+  ) {
+    return this.forumService.update(id, userId, updateForumDto);
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.forumService.remove(+id);
+  remove(@Param('id') id: string, @UserId() userId: string) {
+    return this.forumService.remove(id, userId);
   }
 }

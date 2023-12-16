@@ -263,11 +263,59 @@ export class ForumService {
     return `This action returns a #${id} forum`;
   }
 
-  update(id: number, updateForumDto: UpdateForumDto) {
-    return `This action updates a #${id} forum`;
+  async update(id: string, userId: string, updateForumDto: UpdateForumDto) {
+    const forum = await this.forumRepository.findOne({
+      where: { id },
+      relations: ['memberships', 'memberships.user'],
+    });
+
+    if (!forum) {
+      throw new NotFoundException('Forum not found');
+    }
+
+    const membership = forum.memberships.find(
+      (membership) => membership.user.id === userId,
+    );
+
+    if (!membership || membership.role !== ForumMemberRole.Admin) {
+      throw new NotFoundException(
+        'You are not a member of this forum or you are not an admin',
+      );
+    }
+
+    await this.forumRepository.merge(forum, updateForumDto);
+    await this.forumRepository.save(forum);
+
+    const updatedForum = await this.forumRepository.findOne({
+      where: { id },
+      relations: ['memberships'],
+    });
+
+    return updatedForum;
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} forum`;
+  async remove(id: string, userId: string) {
+    const forum = await this.forumRepository.findOne({
+      where: { id },
+      relations: ['memberships', 'memberships.user'],
+    });
+
+    if (!forum) {
+      throw new NotFoundException('Forum not found');
+    }
+
+    const membership = forum.memberships.find(
+      (membership) => membership.user.id === userId,
+    );
+
+    if (!membership || membership.role !== ForumMemberRole.Admin) {
+      throw new NotFoundException(
+        'You are not a member of this forum or you are not an admin',
+      );
+    }
+
+    await this.forumRepository.remove(forum);
+
+    return { message: `Forum ${id} has been deleted` };
   }
 }
