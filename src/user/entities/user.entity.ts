@@ -16,6 +16,7 @@ import { StrategyTypes } from 'src/core/enums/strategy.enum';
 import { Message } from 'src/message/entities/message.entity';
 import { ChatMember } from 'src/chat/entities/chat-member.entity';
 import { ForumMembership } from 'src/forum/entities/forum-membership.entity';
+import { ArticleComment } from 'src/articles/entities/article-comment.entity';
 
 @Entity('users')
 export class User {
@@ -95,4 +96,9 @@ export class User {
 
   @OneToMany(() => Message, (message) => message.user, { onDelete: 'CASCADE' })
   forumMessages: Message[];
+
+  @OneToMany(() => ArticleComment, (articleComment) => articleComment.user, {
+    onDelete: 'CASCADE',
+  })
+  articleComments: ArticleComment[];
 }
