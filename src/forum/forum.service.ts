@@ -7,7 +7,7 @@ import {
 import { CreateForumDto } from './dto/create-forum.dto';
 import { UpdateForumDto } from './dto/update-forum.dto';
 import { ForumMembership } from './entities/forum-membership.entity';
-import { Repository } from 'typeorm';
+import { ILike, Like, Repository } from 'typeorm';
 import { Forum } from './entities/forum.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { ForumMessage } from './entities/forum-message.entity';
@@ -83,6 +83,29 @@ export class ForumService {
         user: this.userService.removeCredentials(membership.user),
       })),
     };
+  }
+
+  async leave(id: string, userId: string) {
+    const forum = await this.forumRepository.findOne({
+      where: { id },
+      relations: ['memberships', 'memberships.user'],
+    });
+
+    if (!forum) {
+      throw new NotFoundException('Forum not found');
+    }
+
+    const membership = forum.memberships.find(
+      (membership) => membership.user.id === userId,
+    );
+
+    if (!membership) {
+      throw new NotFoundException('You are not a member of this forum');
+    }
+
+    await this.forumMembershipRepository.remove(membership);
+
+    return { message: `You have left the forum ${id}` };
   }
 
   async createMessage(
@@ -187,36 +210,12 @@ export class ForumService {
     return { message: forumMessage, forumMemberIds };
   }
 
-  async findAll() {
+  async findAll(theme?: string) {
     const forums = await this.forumRepository.find({
-      relations: [
-        'memberships',
-        'memberships.user',
-        'messages',
-        'messages.user',
-      ],
-      where: { accessType: ForumAccessTypes.PUBLIC },
+      where: theme ? { theme: ILike(`%${theme}%`) } : {},
     });
 
-    return forums.map((forum) => ({
-      id: forum.id,
-      theme: forum.theme,
-      description: forum.description,
-      createdAt: forum.createdAt,
-      accessType: forum.accessType,
-      membership: forum.memberships.map((membership) => ({
-        id: membership.id,
-        role: membership.role,
-        connectedAt: membership.connectedAt,
-        user: this.userService.removeCredentials(membership.user),
-      })),
-      messages: forum.messages.map((message) => ({
-        id: message.id,
-        text: message.text,
-        createdAt: message.createdAt,
-        user: this.userService.removeCredentials(message.user),
-      })),
-    }));
+    return forums;
   }
 
   async setForumRole(
@@ -259,8 +258,65 @@ export class ForumService {
 
     return selectedUserMembership;
   }
-  findOne(id: number) {
-    return `This action returns a #${id} forum`;
+
+  async findOne(id: string, userId: string) {
+    const forum = await this.forumRepository.findOne({
+      where: { id, memberships: { user: { id: userId } } },
+      relations: [
+        'memberships',
+        'memberships.user',
+        'messages',
+        'messages.user',
+      ],
+    });
+
+    if (!forum) {
+      throw new NotFoundException('Forum not found or you are not a member');
+    }
+
+    const members = await this.forumMembershipRepository.find({
+      where: { forum: { id } },
+      relations: ['user'],
+    });
+
+    return {
+      ...forum,
+      memberships: members.map((membership) => ({
+        id: membership.id,
+        role: membership.role,
+        connectedAt: membership.connectedAt,
+        user: this.userService.removeCredentials(membership.user),
+      })),
+
+      messages: forum.messages.map((message) => ({
+        id: message.id,
+        text: message.text,
+        createdAt: message.createdAt,
+        // user: this.userService.removeCredentials(message.user),
+        user: { id: message.user.id },
+      })),
+    };
+  }
+
+  async findAllMyForums(userId: string) {
+    const forums = await this.forumRepository.find({
+      where: { memberships: { user: { id: userId } } },
+      relations: ['memberships', 'memberships.user'],
+    });
+
+    return forums.map((forum) => ({
+      id: forum.id,
+      theme: forum.theme,
+      description: forum.description,
+      createdAt: forum.createdAt,
+      accessType: forum.accessType,
+      membership: forum.memberships.map((membership) => ({
+        id: membership.id,
+        role: membership.role,
+        connectedAt: membership.connectedAt,
+        // user: this.userService.removeCredentials(membership.user),
+      })),
+    }));
   }
 
   async update(id: string, userId: string, updateForumDto: UpdateForumDto) {

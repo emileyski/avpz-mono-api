@@ -7,12 +7,14 @@ import {
   Param,
   Delete,
   UseGuards,
+  Query,
 } from '@nestjs/common';
 import { ForumService } from './forum.service';
 import { CreateForumDto } from './dto/create-forum.dto';
 import { UpdateForumDto } from './dto/update-forum.dto';
 import {
   ApiBearerAuth,
+  ApiQuery,
   ApiTags,
   ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
@@ -36,11 +38,29 @@ export class ForumController {
     return this.forumService.create(createForumDto, userId);
   }
 
-  // @ApiBearerAuth()
-  // @UseGuards(AccessTokenGuard)
+  @ApiQuery({
+    name: 'theme',
+    description: 'Forum theme',
+    example: 'Sport',
+    required: false,
+  })
   @Get()
-  findAll() {
-    return this.forumService.findAll();
+  findAll(@Query('theme') theme?: string) {
+    return this.forumService.findAll(theme);
+  }
+
+  @ApiBearerAuth()
+  @UseGuards(AccessTokenGuard)
+  @Get('all-my-forums')
+  findAllMyForums(@UserId() userId: string) {
+    return this.forumService.findAllMyForums(userId);
+  }
+
+  @ApiBearerAuth()
+  @UseGuards(AccessTokenGuard)
+  @Get(':id')
+  findOne(@Param('id') id: string, @UserId() userId: string) {
+    return this.forumService.findOne(id, userId);
   }
 
   @ApiBearerAuth()
@@ -62,6 +82,13 @@ export class ForumController {
 
   @ApiBearerAuth()
   @UseGuards(AccessTokenGuard)
+  @Post(':id/leave')
+  leave(@Param('id') id: string, @UserId() userId: string) {
+    return this.forumService.leave(id, userId);
+  }
+
+  @ApiBearerAuth()
+  @UseGuards(AccessTokenGuard)
   @Patch(':id')
   update(
     @Param('id') id: string,
@@ -71,6 +98,8 @@ export class ForumController {
     return this.forumService.update(id, userId, updateForumDto);
   }
 
+  @ApiBearerAuth()
+  @UseGuards(AccessTokenGuard)
   @Delete(':id')
   remove(@Param('id') id: string, @UserId() userId: string) {
     return this.forumService.remove(id, userId);
