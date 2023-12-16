@@ -4,8 +4,10 @@ import {
   Entity,
   Index,
   ManyToOne,
+  OneToMany,
   PrimaryGeneratedColumn,
 } from 'typeorm';
+import { ArticleComment } from './article-comment.entity';
 
 @Entity()
 export class Article {
@@ -27,4 +29,9 @@ export class Article {
 
   @ManyToOne(() => User, (user) => user.articles, { onDelete: 'CASCADE' })
   user: User;
+
+  @OneToMany(() => ArticleComment, (comment) => comment.article, {
+    onDelete: 'CASCADE',
+  })
+  comments: ArticleComment[];
 }

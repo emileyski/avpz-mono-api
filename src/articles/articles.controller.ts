@@ -14,7 +14,7 @@ import { UpdateArticleDto } from './dto/update-article.dto';
 import { AccessTokenGuard } from 'src/core/guards/access-token.guard';
 import { UserId } from 'src/core/decorators/user-id.decorator';
 import { Public } from 'src/core/decorators/public.decorator';
-import { ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiBody, ApiTags } from '@nestjs/swagger';
 
 @ApiTags('articles')
 @Controller('articles')
@@ -48,5 +48,35 @@ export class ArticlesController {
   @Delete(':id')
   remove(@Param('id') id: string, @UserId() userId: string) {
     return this.articlesService.remove(id, userId);
+  }
+
+  @ApiBearerAuth()
+  @UseGuards(AccessTokenGuard)
+  @Post(':id/like')
+  like(@Param('id') id: string, @UserId() userId: string) {
+    return this.articlesService.like(id, userId);
+  }
+
+  @ApiBearerAuth()
+  @UseGuards(AccessTokenGuard)
+  @Post(':id/:body/comment')
+  comment(
+    @Param('id') id: string,
+    @Param('body') body: string,
+    @UserId() userId: string,
+  ) {
+    console.log(body);
+
+    return this.articlesService.comment(id, body, userId);
+  }
+
+  @ApiBearerAuth()
+  @UseGuards(AccessTokenGuard)
+  @Delete('/comment/:commentId')
+  removeComment(
+    @Param('commentId') commentId: string,
+    @UserId() userId: string,
+  ) {
+    return this.articlesService.removeComment(commentId, userId);
   }
 }
