@@ -59,13 +59,52 @@ export class ArticlesService {
     return articles;
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} article`;
+  async findOne(id: string) {
+    const article = await this.articleRepository
+      .createQueryBuilder('article')
+      .select([
+        'article.id',
+        'article.title',
+        'article.body',
+        'article.tags',
+        'article.createdAt',
+        'user.name',
+        'user.nickname',
+        'user.id',
+        'comments.id',
+        'comments.body',
+        'comments.createdAt',
+        'commentUser.id',
+        'commentUser.name',
+        'commentUser.nickname',
+      ])
+      .leftJoin('article.user', 'user')
+      .leftJoin('article.comments', 'comments')
+      .leftJoin('comments.user', 'commentUser')
+      .where('article.id = :id', { id })
+      .getOne();
+
+    if (!article) {
+      throw new NotFoundException('Article not found');
+    }
+
+    return article;
   }
 
   //TODO: Implement update method
-  update(id: number, updateArticleDto: UpdateArticleDto) {
-    return `This action updates a #${id} article`;
+  async update(id: string, updateArticleDto: UpdateArticleDto) {
+    const article = await this.articleRepository.findOne({ where: { id } });
+
+    if (!article) {
+      throw new NotFoundException('Article not found');
+    }
+
+    const updatedArticle = await this.articleRepository.save({
+      ...article,
+      ...updateArticleDto,
+    });
+
+    return updatedArticle;
   }
 
   async remove(id: string, userId: string) {
